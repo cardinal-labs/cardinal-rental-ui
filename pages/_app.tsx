@@ -12,6 +12,7 @@ import type { AppProps } from 'next/app'
 import { EnvironmentProvider } from 'providers/EnvironmentProvider'
 import { IssuedTokensProvider } from 'providers/IssuedTokensProvider'
 import { ManagedTokensProvider } from 'providers/ManagedTokensProvider'
+import { MetadataProvider } from 'providers/MetadataProvider'
 import { PaymentMintsProvider } from 'providers/PaymentMintsProvider'
 import {
   getInitialProps,
@@ -37,19 +38,21 @@ const App = ({
           <PaymentMintsProvider>
             <QRCodeProvider>
               <UTCNowProvider>
-                <TokenAccountsProvider>
-                  <ManagedTokensProvider>
-                    <IssuedTokensProvider>
-                      <RentalModalProvider>
-                        <RentalExtensionModalProvider>
-                          <WalletModalProvider>
-                            <Component {...pageProps} />
-                          </WalletModalProvider>
-                        </RentalExtensionModalProvider>
-                      </RentalModalProvider>
-                    </IssuedTokensProvider>
-                  </ManagedTokensProvider>
-                </TokenAccountsProvider>
+                <MetadataProvider>
+                  <TokenAccountsProvider>
+                    <ManagedTokensProvider>
+                      <IssuedTokensProvider>
+                        <RentalModalProvider>
+                          <RentalExtensionModalProvider>
+                            <WalletModalProvider>
+                              <Component {...pageProps} />
+                            </WalletModalProvider>
+                          </RentalExtensionModalProvider>
+                        </RentalModalProvider>
+                      </IssuedTokensProvider>
+                    </ManagedTokensProvider>
+                  </TokenAccountsProvider>
+                </MetadataProvider>
               </UTCNowProvider>
             </QRCodeProvider>
           </PaymentMintsProvider>

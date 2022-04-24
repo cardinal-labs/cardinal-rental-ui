@@ -10,6 +10,7 @@ import { Wallet } from 'components/Wallet'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { useError } from 'providers/ErrorProvider'
+import { useMetadataData } from 'providers/MetadataProvider'
 import { useProjectConfig } from 'providers/ProjectConfigProvider'
 import { useUserTokenData } from 'providers/TokenDataProvider'
 import { useEffect, useState } from 'react'
@@ -44,6 +45,7 @@ export default function Home() {
   const wallet = useWallet()
   const router = useRouter()
   const [tab, setTab] = useState<string>('')
+  const { metadata, setMetadata, values, setValues } = useMetadataData()
 
   useEffect(() => {
     const anchor = router.asPath.split('#')[1]
@@ -125,6 +127,79 @@ export default function Home() {
             ]}
           />
           <StyledContainer style={{ paddingTop: '120px' }}>
+            <div className="my-10 ml-2 flex text-white">
+              <div className="text-base font-semibold">Metadata:</div>
+              <input
+                id="metadata-input"
+                autoComplete="off"
+                className="mx-4 block appearance-none rounded border border-gray-500 bg-gray-700 px-2 py-1 leading-tight text-gray-200 placeholder-gray-500 focus:bg-gray-800 focus:outline-none focus:outline-none"
+                type="text"
+                placeholder={'type: rarity [↵ Enter]'}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    if ((e.target as HTMLInputElement).value.length > 0) {
+                      setMetadata([
+                        ...metadata,
+                        (e.target as HTMLInputElement).value,
+                      ])
+                      ;(e.target as HTMLInputElement).value = ''
+                    }
+                  }
+                }}
+              />
+              {metadata.length > 0 && (
+                <input
+                  id="metadata-input"
+                  autoComplete="off"
+                  className="mx-2 block appearance-none rounded border border-gray-500 bg-gray-700 px-2 py-1 leading-tight text-gray-200 placeholder-gray-500 focus:bg-gray-800 focus:outline-none focus:outline-none"
+                  type="text"
+                  placeholder={'value: special [↵ Enter]'}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      if ((e.target as HTMLInputElement).value.length > 0) {
+                        setValues([
+                          ...values,
+                          (e.target as HTMLInputElement).value,
+                        ])
+                        ;(e.target as HTMLInputElement).value = ''
+                      }
+                    }
+                  }}
+                />
+              )}
+              <div className="mt-1">
+                {metadata.length > 0 && (
+                  <span className="pl-5 pr-2">Types: </span>
+                )}
+                {metadata.map((m) => (
+                  <span
+                    className="mr-5 rounded-lg border-2 px-2 py-0.5"
+                    key={m}
+                    onDoubleClick={() => {
+                      setMetadata(metadata.filter((x) => x !== m))
+                    }}
+                  >
+                    {m}
+                  </span>
+                ))}
+              </div>
+              <div className="mt-1">
+                {values.length > 0 && (
+                  <span className="pl-5 pr-2">Values: </span>
+                )}
+                {values.map((m) => (
+                  <span
+                    className="mr-5 rounded-lg border-2 px-2 py-0.5"
+                    key={m}
+                    onDoubleClick={() => {
+                      setValues(values.filter((x) => x !== m))
+                    }}
+                  >
+                    {m}
+                  </span>
+                ))}
+              </div>
+            </div>
             <div style={{ position: 'relative' }}>
               {error}
               {(() => {

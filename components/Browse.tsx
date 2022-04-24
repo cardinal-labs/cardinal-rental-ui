@@ -22,6 +22,7 @@ import type { ProjectConfig } from 'config/config'
 import { lighten } from 'polished'
 import { useEnvironmentCtx } from 'providers/EnvironmentProvider'
 import { useIssuedTokens } from 'providers/IssuedTokensProvider'
+import { useMetadataData } from 'providers/MetadataProvider'
 import {
   PAYMENT_MINTS,
   usePaymentMints,
@@ -97,6 +98,7 @@ export const Browse = ({ config }: { config: ProjectConfig }) => {
     [filterName: string]: any[]
   }>({})
   const [showFilters, setShowFilters] = useState<boolean>(false)
+  const { metadata, values } = useMetadataData()
 
   const StyledSelect = styled.div`
     .ant-select-selector {
@@ -344,7 +346,7 @@ export const Browse = ({ config }: { config: ProjectConfig }) => {
     <div className="container mx-auto">
       <div className="mb-4 flex h-min flex-wrap justify-center md:justify-between">
         <div className="flex h-fit">
-          <div className="d-block flex-col  border-2 border-gray-600 py-3 px-5 md:ml-12">
+          <div className="d-block flex-col border-2 border-gray-600 py-3 px-5 md:ml-2">
             <p className="text-gray-400">FLOOR PRICE / WEEK</p>
             <h2 className="text-center font-bold text-gray-100">
               {calculateFloorPrice(filteredAndSortedTokens).toFixed(2)}{' '}
@@ -472,82 +474,104 @@ export const Browse = ({ config }: { config: ProjectConfig }) => {
                   {
                     [TokenManagerState.Initialized]: <>Initiliazed</>,
                     [TokenManagerState.Issued]: (
-                      <div className="flex w-full justify-between">
-                        <StyledTag>
-                          <div
-                            style={{
-                              display: 'flex',
-                              flexDirection: 'column',
-                              justifyContent: 'space-between',
-                              width: '100%',
-                            }}
-                          >
-                            <Tag
-                              state={TokenManagerState.Issued}
-                              color="warning"
+                      <div className="w-full">
+                        <div className="flex w-full justify-between">
+                          <StyledTag>
+                            <div
+                              style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                justifyContent: 'space-between',
+                                width: '100%',
+                              }}
                             >
-                              <div className="float-left">
-                                <p className="float-left inline-block text-ellipsis whitespace-nowrap">
-                                  {new Date(
-                                    Number(
-                                      tokenData.tokenManager?.parsed.stateChangedAt.toString()
-                                    ) * 1000
-                                  ).toLocaleString('en-US', {
-                                    year: 'numeric',
-                                    month: 'numeric',
-                                    day: 'numeric',
-                                    hour: 'numeric',
-                                    minute: '2-digit',
-                                  })}
-                                </p>
-                                <br />{' '}
-                                <DisplayAddress
-                                  connection={connection}
-                                  address={
-                                    tokenData.tokenManager?.parsed.issuer ||
-                                    undefined
-                                  }
-                                  height="18px"
-                                  width="100px"
-                                  dark={true}
-                                />{' '}
-                              </div>
-                            </Tag>
-                          </div>
-                        </StyledTag>
+                              <Tag
+                                state={TokenManagerState.Issued}
+                                color="warning"
+                              >
+                                <div className="float-left">
+                                  <p className="float-left inline-block text-ellipsis whitespace-nowrap">
+                                    {new Date(
+                                      Number(
+                                        tokenData.tokenManager?.parsed.stateChangedAt.toString()
+                                      ) * 1000
+                                    ).toLocaleString('en-US', {
+                                      year: 'numeric',
+                                      month: 'numeric',
+                                      day: 'numeric',
+                                      hour: 'numeric',
+                                      minute: '2-digit',
+                                    })}
+                                  </p>
+                                  <br />{' '}
+                                  <DisplayAddress
+                                    connection={connection}
+                                    address={
+                                      tokenData.tokenManager?.parsed.issuer ||
+                                      undefined
+                                    }
+                                    height="18px"
+                                    width="100px"
+                                    dark={true}
+                                  />{' '}
+                                </div>
+                              </Tag>
+                            </div>
+                          </StyledTag>
 
-                        <div className="flex w-max">
-                          <AsyncButton
-                            bgColor={config.colors.secondary}
-                            variant="primary"
-                            disabled={!wallet.publicKey}
-                            className="mr-1 inline-block flex-none"
-                            handleClick={async () => {
-                              if (wallet.publicKey) {
-                                await handleClaim(tokenData)
-                              }
-                            }}
-                          >
-                            <>
-                              Claim{' '}
-                              {(tokenData.claimApprover?.parsed?.paymentAmount.toNumber() ??
-                                0) / 1000000000}{' '}
-                              {getSymbolFromTokenData(tokenData)}{' '}
-                            </>
-                          </AsyncButton>
-                          <Button
-                            variant="tertiary"
-                            className="mr-1 inline-block flex-none"
-                            onClick={() =>
-                              handleCopy(
-                                getLink(
-                                  `/claim/${tokenData.tokenManager?.pubkey.toBase58()}`
+                          <div className="flex w-max">
+                            <AsyncButton
+                              bgColor={config.colors.secondary}
+                              variant="primary"
+                              disabled={!wallet.publicKey}
+                              className="mr-1 inline-block flex-none"
+                              handleClick={async () => {
+                                if (wallet.publicKey) {
+                                  await handleClaim(tokenData)
+                                }
+                              }}
+                            >
+                              <>
+                                Claim{' '}
+                                {(tokenData.claimApprover?.parsed?.paymentAmount.toNumber() ??
+                                  0) / 1000000000}{' '}
+                                {getSymbolFromTokenData(tokenData)}{' '}
+                              </>
+                            </AsyncButton>
+                            <Button
+                              variant="tertiary"
+                              className="mr-1 inline-block flex-none"
+                              onClick={() =>
+                                handleCopy(
+                                  getLink(
+                                    `/claim/${tokenData.tokenManager?.pubkey.toBase58()}`
+                                  )
                                 )
-                              )
-                            }
-                          >
-                            <FaLink />
-                          </Button>
+                              }
+                            >
+                              <FaLink />
+                            </Button>
+                          </div>
+                        </div>
+                        <div className="text-xs text-white">
+                          {tokenData.metadata.data.attributes.map(
+                            (attr: { trait_type: string; value: any }) => (
+                              <div key="giannis">
+                                {metadata.some(
+                                  (md) =>
+                                    md.toLowerCase() ===
+                                    attr.trait_type.toLowerCase()
+                                ) &&
+                                  (values.length === 0 ||
+                                    values.some(
+                                      (val) =>
+                                        val.toLowerCase() ===
+                                        attr.value.toLowerCase()
+                                    )) &&
+                                  `${attr.trait_type}: ${attr.value}`}
+                              </div>
+                            )
+                          )}
                         </div>
                       </div>
                     ),

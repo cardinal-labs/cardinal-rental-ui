@@ -1,9 +1,5 @@
-import {
-  withInvalidate,
-} from '@cardinal/token-manager'
-import {
-  InvalidationType,
-} from '@cardinal/token-manager/dist/cjs/programs/tokenManager'
+import { withInvalidate } from '@cardinal/token-manager'
+import { InvalidationType } from '@cardinal/token-manager/dist/cjs/programs/tokenManager'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { Transaction } from '@solana/web3.js'
 import type { TokenData } from 'api/api'
