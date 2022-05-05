@@ -16,7 +16,7 @@ import { notify } from 'common/Notification'
 import { Tag } from 'common/Tags'
 import { executeTransaction } from 'common/Transactions'
 import { fmtMintAmount, getMintDecimalAmount } from 'common/units'
-import { secondsToString } from 'common/utils'
+import { getAllAttributes, secondsToString } from 'common/utils'
 import { asWallet } from 'common/Wallets'
 import { useFilteredTokenManagers } from 'hooks/useFilteredTokenManagers'
 import { useProjectStats } from 'hooks/useProjectStatsHook'
@@ -71,32 +71,6 @@ const boundsToSeconds: { [key in number]: number } = {
   60: 604800,
   80: 2419200,
   100: Infinity,
-}
-
-const getAllAttributes = (tokens: TokenData[]) => {
-  const allAttributes: { [traitType: string]: Set<any> } = {}
-  tokens.forEach((tokenData) => {
-    if (
-      tokenData?.metadata?.data?.attributes &&
-      tokenData?.metadata?.data?.attributes.length > 0
-    ) {
-      tokenData?.metadata?.data?.attributes.forEach(
-        (attribute: { trait_type: string; value: any }) => {
-          if (attribute.trait_type in allAttributes) {
-            allAttributes[attribute.trait_type]!.add(attribute.value)
-          } else {
-            allAttributes[attribute.trait_type] = new Set([attribute.value])
-          }
-        }
-      )
-    }
-  })
-
-  const sortedAttributes: { [traitType: string]: any[] } = {}
-  Object.keys(allAttributes).forEach((traitType) => {
-    sortedAttributes[traitType] = Array.from(allAttributes[traitType] ?? [])
-  })
-  return sortedAttributes
 }
 
 export const getTokenMaxDuration = (tokenData: TokenData) => {

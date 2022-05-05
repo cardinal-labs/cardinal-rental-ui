@@ -1,3 +1,4 @@
+import type { TokenData } from './../api/api';
 import type * as web3 from '@solana/web3.js'
 
 export type Cluster = web3.Cluster | 'mainnet' | 'localnet'
@@ -132,4 +133,30 @@ export const secondsToString = (
   }${!weeks && minutes ? `${minutes}m ` : ''}${
     seconds && showSeconds ? `${seconds}s` : ''
   }`
+}
+
+export const getAllAttributes = (tokens: TokenData[]) => {
+  const allAttributes: { [traitType: string]: Set<any> } = {}
+  tokens.forEach((tokenData) => {
+    if (
+      tokenData?.metadata?.data?.attributes &&
+      tokenData?.metadata?.data?.attributes.length > 0
+    ) {
+      tokenData?.metadata?.data?.attributes.forEach(
+        (attribute: { trait_type: string; value: any }) => {
+          if (attribute.trait_type in allAttributes) {
+            allAttributes[attribute.trait_type]!.add(attribute.value)
+          } else {
+            allAttributes[attribute.trait_type] = new Set([attribute.value])
+          }
+        }
+      )
+    }
+  })
+
+  const sortedAttributes: { [traitType: string]: any[] } = {}
+  Object.keys(allAttributes).forEach((traitType) => {
+    sortedAttributes[traitType] = Array.from(allAttributes[traitType] ?? [])
+  })
+  return sortedAttributes
 }
