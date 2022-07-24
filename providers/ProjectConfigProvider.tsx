@@ -2,7 +2,6 @@ import {
   getNameEntryData,
   tryGetProfile,
 } from '@cardinal/namespaces-components'
-import type { PublicKey } from '@solana/web3.js'
 import { Connection } from '@solana/web3.js'
 import type { TokenData } from 'api/api'
 import { tryPublicKey } from 'api/utils'
@@ -75,8 +74,7 @@ export const filterTokens = (
   filter?: {
     type: 'creators' | 'symbol' | 'issuer' | 'state' | 'claimer' | 'owner'
     value: string[]
-  },
-  issuer?: PublicKey | null
+  }
 ): TokenData[] => {
   return tokens.filter((token) => {
     let filtered = false
@@ -97,7 +95,8 @@ export const filterTokens = (
         filtered = true
       } else if (
         filter.type === 'issuer' &&
-        token.tokenManager?.parsed.issuer
+        token.tokenManager?.parsed &&
+        filter.value.includes(token.tokenManager?.parsed.issuer.toString())
       ) {
         filtered = true
       } else if (
@@ -120,9 +119,6 @@ export const filterTokens = (
         ) &&
         !token.tokenManager
       ) {
-        filtered = true
-      }
-      if (issuer && !token.tokenManager?.parsed.issuer.equals(issuer)) {
         filtered = true
       }
     }
