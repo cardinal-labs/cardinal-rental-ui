@@ -4,7 +4,7 @@ import { useRouter } from 'next/router'
 import React, { useContext, useMemo, useState } from 'react'
 
 export interface Environment {
-  label: Cluster | 'mainnet' | 'localnet'
+  label: Cluster
   primary: string
   secondary?: string
   api?: string
@@ -22,7 +22,7 @@ const INDEX_ENABLED = true
 
 export const ENVIRONMENTS: Environment[] = [
   {
-    label: 'mainnet',
+    label: 'mainnet-beta',
     primary: process.env.MAINNET_PRIMARY || 'https://ssc-dao.genesysgo.net',
     secondary: 'https://ssc-dao.genesysgo.net',
     index: INDEX_ENABLED
@@ -45,13 +45,17 @@ const EnvironmentContext: React.Context<null | EnvironmentContextValues> =
 
 export function EnvironmentProvider({
   children,
+  defaultCluster,
 }: {
   children: React.ReactChild
+  defaultCluster: string
 }) {
   const { query } = useRouter()
   const cluster = (query.project || query.host)?.includes('dev')
     ? 'devnet'
-    : query.cluster || process.env.BASE_CLUSTER
+    : query.host?.includes('test')
+    ? 'testnet'
+    : query.cluster || defaultCluster || process.env.BASE_CLUSTER
   const foundEnvironment = ENVIRONMENTS.find((e) => e.label === cluster)
   const [environment, setEnvironment] = useState<Environment>(
     foundEnvironment ?? ENVIRONMENTS[0]!

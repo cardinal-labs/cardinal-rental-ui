@@ -1,7 +1,7 @@
 import { utils } from '@project-serum/anchor'
 import QRCodeStyling from '@solana/qr-code-styling'
 import type { Keypair } from '@solana/web3.js'
-import type { TokenData } from 'api/api'
+import type { TokenData } from 'apis/api'
 import { useRecentSignatures } from 'hooks/useRecentSignatures'
 import { getLink, useProjectConfig } from 'providers/ProjectConfigProvider'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
@@ -9,18 +9,16 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 function ClaimQRCode({
   tokenData,
   keypair,
-  setShowQRCode,
 }: {
   tokenData?: TokenData | null
   keypair?: Keypair
-  setShowQRCode?: (state: boolean) => void
 }) {
   const { config } = useProjectConfig()
   const [QRCode, setQRCode] = useState<QRCodeStyling>()
   const [showSuccess, setShowSuccess] = useState(false)
   const recentSignatures = useRecentSignatures(tokenData?.tokenManager?.pubkey)
 
-  const generateQrCode = async () => {
+  const generateQrCode = () => {
     console.log(
       'Generating QR code for request:/claim/ ',
       `solana:${encodeURIComponent(
@@ -55,7 +53,7 @@ function ClaimQRCode({
       )}`,
       image: config.logoImage,
       dotsOptions: {
-        color: config.colors.secondary,
+        color: config.colors.accent,
         type: 'extra-rounded',
       },
       cornersSquareOptions: {
@@ -106,12 +104,6 @@ function ClaimQRCode({
       ) : (
         <div className="relative flex flex-col items-center justify-center rounded-2xl">
           <div ref={ref} className="scale-[.7] md:scale-100" />
-          <div
-            className="cursor-pointer py-3 text-xs text-gray-500"
-            onClick={() => setShowQRCode && setShowQRCode(false)}
-          >
-            Hide QR Code
-          </div>
         </div>
       )}
     </>

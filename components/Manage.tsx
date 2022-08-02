@@ -1,255 +1,210 @@
-import { DisplayAddress } from '@cardinal/namespaces-components'
-import { invalidate } from '@cardinal/token-manager'
-import { TokenManagerState } from '@cardinal/token-manager/dist/cjs/programs/tokenManager'
-import { BN } from '@project-serum/anchor'
-import { useWallet } from '@solana/wallet-adapter-react'
-import { PublicKey } from '@solana/web3.js'
-import { Header } from 'common/Header'
-import { NFT, NFTPlaceholder, TokensOuter } from 'common/NFT'
-import { Tag } from 'common/Tags'
-import { executeTransaction } from 'common/Transactions'
-import { asWallet } from 'common/Wallets'
+import type { PublicKey } from '@solana/web3.js'
+import type { TokenData } from 'apis/api'
+import { HeaderSlim } from 'common/HeaderSlim'
+import { HeroSmall } from 'common/HeroSmall'
+import { getAllAttributes } from 'common/NFTAttributeFilters'
+import { SelecterDrawer } from 'common/SelectedDrawer'
+import { elligibleForRent } from 'common/tokenDataUtils'
+import type { TokenFilter } from 'config/config'
 import { useManagedTokens } from 'hooks/useManagedTokens'
-import { lighten } from 'polished'
-import { useEnvironmentCtx } from 'providers/EnvironmentProvider'
-import { getLink, useProjectConfig } from 'providers/ProjectConfigProvider'
-import { useUTCNow } from 'providers/UTCNowProvider'
-import { FaLink } from 'react-icons/fa'
-import { AsyncButton } from 'rental-components/common/Button'
+import { useUserTokenData } from 'hooks/useUserTokenData'
+import { useWalletId } from 'hooks/useWalletId'
+import { useProjectConfig } from 'providers/ProjectConfigProvider'
+import { useState } from 'react'
+import { useQuery } from 'react-query'
 
-import { getDurationText, handleCopy } from './Browse'
+import { TokenQueryResults } from './TokenQueryResults'
+
+export type ManageTokenGroupId = 'all' | 'available' | 'rented' | 'rented-out'
+
+export type ManageTokenGroup = {
+  id: ManageTokenGroupId
+  header?: string
+  description?: string
+  icon?:
+    | 'time'
+    | 'featured'
+    | 'listed'
+    | 'rented'
+    | 'available'
+    | 'info'
+    | 'performance'
+  filter?: TokenFilter
+}
+
+export const manageTokenGroups = (
+  walletId: PublicKey | undefined
+): ManageTokenGroup[] => [
+  {
+    id: 'all',
+    header: 'All',
+    description:
+      'View all tokens affiliated with your wallet on this marketplace',
+    icon: 'performance',
+    filter: {
+      type: 'claimer',
+      value: [walletId?.toString() || ''],
+    },
+  },
+  {
+    id: 'available',
+    header: 'Available',
+    description:
+      'View and select all tokens available for rent on this marketplace',
+    icon: 'available',
+    filter: {
+      type: 'owner',
+      value: [walletId?.toString() || ''],
+    },
+  },
+  {
+    id: 'rented',
+    header: 'Rented',
+    description:
+      'View all tokens you have currently rented on this marketplace',
+    icon: 'performance',
+    filter: {
+      type: 'claimer',
+      value: [walletId?.toString() || ''],
+    },
+  },
+  {
+    id: 'rented-out',
+    header: 'Rented out',
+    description:
+      'View all your currently rented out tokens on this marketplace',
+    icon: 'performance',
+    filter: {
+      type: 'issuer',
+      value: [walletId?.toString() || ''],
+    },
+  },
+]
+
+export const tokenDatasId = (tokenDatas: TokenData[] | undefined) =>
+  tokenDatas
+    ?.map((tokenData) => tokenData.metaplexData?.pubkey.toString())
+    .join(',')
 
 export const Manage = () => {
+  const walletId = useWalletId()
   const { config } = useProjectConfig()
-  const { connection, secondaryConnection } = useEnvironmentCtx()
-  const wallet = useWallet()
-  const tokenManagerByIssuer = useManagedTokens()
-  const { UTCNow } = useUTCNow()
 
+  const userTokenDatas = useUserTokenData(config.filter)
+  const managedTokens = useManagedTokens()
+  const allManagedTokens = useQuery(
+    [
+      'useAllManagedTokens',
+      walletId?.toString(),
+      tokenDatasId(userTokenDatas.data),
+      tokenDatasId(managedTokens.data),
+    ],
+    () => {
+      return [
+        ...(userTokenDatas.data ?? []),
+        ...(managedTokens.data?.filter(
+          (tokenData) =>
+            !userTokenDatas.data
+              ?.map((userTokenData) =>
+                userTokenData.metaplexData?.pubkey.toString()
+              )
+              .includes(tokenData.metaplexData?.pubkey.toString())
+        ) ?? []),
+      ]
+    },
+    {
+      enabled: !!userTokenDatas.isFetched && !!managedTokens.isFetched,
+    }
+  )
+  const availableTokens = useQuery(
+    [
+      'availableTokens',
+      walletId?.toString(),
+      tokenDatasId(userTokenDatas.data),
+    ],
+    () => {
+      return (userTokenDatas.data ?? []).filter((tokenData) =>
+        elligibleForRent(config, tokenData)
+      )
+    },
+    {
+      enabled: !!userTokenDatas.data,
+    }
+  )
+
+  const rentedTokens = useQuery(
+    [
+      'useRentedTokens',
+      walletId?.toString(),
+      tokenDatasId(userTokenDatas.data),
+    ],
+    () => {
+      return (userTokenDatas.data ?? []).filter((tokenData) => {
+        return !!tokenData.tokenManager
+      })
+    },
+    {
+      enabled: !!userTokenDatas.data,
+    }
+  )
+
+  const [selectedGroup, setSelectedGroup] = useState<ManageTokenGroupId>('all')
+  const [selectedTokens, setSelectedTokens] = useState<TokenData[]>([])
+  const attributeFilterOptions = getAllAttributes(allManagedTokens.data ?? [])
   return (
     <>
-      <Header
-        loading={
-          tokenManagerByIssuer.isFetched && tokenManagerByIssuer.isFetching
-        }
+      <SelecterDrawer
+        selectedTokens={selectedTokens}
+        onClose={() => setSelectedTokens([])}
+      />
+      <HeaderSlim
         tabs={[
-          {
-            name: 'Wallet',
-            anchor: wallet.publicKey?.toBase58() || 'wallet',
-            disabled: !wallet.connected,
-          },
+          { name: 'Browse', anchor: 'browse' },
           {
             name: 'Manage',
             anchor: 'manage',
-            disabled: !wallet.connected || config.disableListing,
+            disabled: !walletId,
+            tooltip: !walletId ? 'Connect wallet' : undefined,
           },
-          { name: 'Browse', anchor: 'browse' },
         ]}
       />
-      <div className="mt-10">
-        <TokensOuter>
-          {!tokenManagerByIssuer.isFetched ? (
-            <>
-              <NFTPlaceholder />
-              <NFTPlaceholder />
-              <NFTPlaceholder />
-              <NFTPlaceholder />
-              <NFTPlaceholder />
-              <NFTPlaceholder />
-            </>
-          ) : tokenManagerByIssuer.data &&
-            tokenManagerByIssuer.data.length > 0 ? (
-            tokenManagerByIssuer.data.map((tokenData) => (
-              <div key={tokenData.tokenManager?.pubkey.toString()}>
-                <NFT
-                  key={tokenData?.tokenManager?.pubkey.toBase58()}
-                  tokenData={tokenData}
-                />
-                {
-                  {
-                    [TokenManagerState.Initialized]: <>Initiliazed</>,
-                    [TokenManagerState.Issued]: (
-                      <div
-                        style={{
-                          background: lighten(0.07, config.colors.main),
-                        }}
-                        className={`flex min-h-[82px] w-[280px] flex-col rounded-b-md p-3`}
-                      >
-                        <div
-                          className="mb-2 flex w-full cursor-pointer flex-row text-xs font-bold text-white"
-                          onClick={() =>
-                            handleCopy(
-                              getLink(
-                                `/claim/${tokenData.tokenManager?.pubkey.toBase58()}`
-                              )
-                            )
-                          }
-                        >
-                          <p className="flex w-fit overflow-hidden text-ellipsis whitespace-nowrap text-left">
-                            {tokenData.metadata?.data?.name}
-                          </p>
-                          <div className="ml-[6px] mt-[2px] flex w-fit">
-                            <FaLink />
-                          </div>
-                        </div>
-
-                        <div className="flex w-full flex-row justify-between text-xs">
-                          {tokenData.timeInvalidator?.parsed ||
-                          tokenData.useInvalidator?.parsed ? (
-                            <Tag state={TokenManagerState.Issued}>
-                              <div className="flex flex-col">
-                                <div>{getDurationText(tokenData, UTCNow)}</div>
-                                <DisplayAddress
-                                  connection={secondaryConnection}
-                                  address={
-                                    tokenData.tokenManager?.parsed.issuer ||
-                                    undefined
-                                  }
-                                  height="18px"
-                                  width="100px"
-                                  dark={true}
-                                />
-                              </div>
-                            </Tag>
-                          ) : (
-                            <div className="my-auto rounded-lg bg-gray-800 px-5 py-2 text-white">
-                              Private
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ),
-                    [TokenManagerState.Claimed]: (
-                      <div
-                        style={{
-                          background: lighten(0.07, config.colors.main),
-                        }}
-                        className={`flex min-h-[82px] w-[280px] flex-col rounded-b-md p-3`}
-                      >
-                        <div
-                          className="mb-2 flex w-full cursor-pointer flex-row text-xs font-bold text-white"
-                          onClick={() =>
-                            handleCopy(
-                              getLink(
-                                `/claim/${tokenData.tokenManager?.pubkey.toBase58()}`
-                              )
-                            )
-                          }
-                        >
-                          <p className="flex w-fit overflow-hidden text-ellipsis whitespace-nowrap text-left">
-                            {tokenData.metadata?.data?.name}
-                          </p>
-                          <div className="ml-[6px] mt-[2px] flex w-fit">
-                            <span className="flex w-full text-left">
-                              <FaLink />
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="flex flex-row justify-between text-xs">
-                          {tokenData.recipientTokenAccount?.owner && (
-                            <Tag state={TokenManagerState.Claimed}>
-                              <div className="flex flex-col">
-                                <div className="flex">
-                                  <span className="inline-block">
-                                    Claimed by&nbsp;
-                                  </span>
-                                  <DisplayAddress
-                                    style={{
-                                      color: '#52c41a !important',
-                                      display: 'inline',
-                                    }}
-                                    connection={secondaryConnection}
-                                    address={
-                                      new PublicKey(
-                                        tokenData.recipientTokenAccount?.owner
-                                      )
-                                    }
-                                    height="18px"
-                                    width="100px"
-                                    dark={true}
-                                  />
-                                </div>
-                                <div className="flex">
-                                  <span className="inline-block">
-                                    Issued by&nbsp;
-                                  </span>
-                                  <DisplayAddress
-                                    style={{
-                                      color: '#52c41a !important',
-                                      display: 'inline',
-                                    }}
-                                    connection={secondaryConnection}
-                                    address={
-                                      tokenData.tokenManager?.parsed.issuer
-                                    }
-                                    height="18px"
-                                    width="100px"
-                                    dark={true}
-                                  />
-                                </div>
-                              </div>
-                            </Tag>
-                          )}
-                          {((wallet.publicKey &&
-                            tokenData?.tokenManager?.parsed.invalidators &&
-                            tokenData?.tokenManager?.parsed.invalidators
-                              .map((i: PublicKey) => i.toString())
-                              .includes(wallet.publicKey?.toString())) ||
-                            (tokenData.timeInvalidator &&
-                              tokenData.timeInvalidator.parsed.expiration &&
-                              tokenData.timeInvalidator.parsed.expiration.lte(
-                                new BN(Date.now() / 1000)
-                              )) ||
-                            (tokenData.useInvalidator &&
-                              tokenData.useInvalidator.parsed.maxUsages &&
-                              tokenData.useInvalidator.parsed.usages.gte(
-                                tokenData.useInvalidator.parsed.maxUsages
-                              ))) && (
-                            <AsyncButton
-                              variant="primary"
-                              disabled={!wallet.connected}
-                              handleClick={async () => {
-                                tokenData?.tokenManager &&
-                                  executeTransaction(
-                                    connection,
-                                    asWallet(wallet),
-                                    await invalidate(
-                                      connection,
-                                      asWallet(wallet),
-                                      tokenData?.tokenManager?.parsed.mint
-                                    ),
-                                    {
-                                      callback: tokenManagerByIssuer.refetch,
-                                      silent: true,
-                                    }
-                                  )
-                              }}
-                            >
-                              Revoke
-                            </AsyncButton>
-                          )}
-                        </div>
-                      </div>
-                    ),
-                    [TokenManagerState.Invalidated]: (
-                      <Tag state={TokenManagerState.Invalidated}>
-                        Invalidated
-                      </Tag>
-                    ),
-                  }[tokenData?.tokenManager?.parsed.state as TokenManagerState]
-                }
-              </div>
-            ))
-          ) : (
-            <div className="white flex w-full flex-col items-center justify-center gap-1">
-              <div className="text-gray-500">
-                No outstanding {config.displayName} rentals found...
-              </div>
-            </div>
-          )}
-        </TokensOuter>
-      </div>
+      <HeroSmall />
+      <TokenQueryResults
+        tokenGroup={
+          manageTokenGroups(walletId).find((g) => g.id === selectedGroup)!
+        }
+        setSelectedGroup={setSelectedGroup}
+        tokenQuery={
+          {
+            all: {
+              ...allManagedTokens,
+              isFetching: userTokenDatas.isFetching || managedTokens.isFetching,
+              dataUpdatedAt: Math.min(
+                userTokenDatas.dataUpdatedAt,
+                managedTokens.dataUpdatedAt
+              ),
+              refetch: () => {
+                userTokenDatas.refetch()
+                return managedTokens.refetch()
+              },
+            },
+            available: {
+              ...availableTokens,
+              isFetching: userTokenDatas.isFetching,
+              dataUpdatedAt: userTokenDatas.dataUpdatedAt,
+              refetch: userTokenDatas.refetch,
+            },
+            rented: {
+              ...rentedTokens,
+              isFetching: userTokenDatas.isFetching,
+              dataUpdatedAt: userTokenDatas.dataUpdatedAt,
+              refetch: userTokenDatas.refetch,
+            },
+            'rented-out': managedTokens,
+          }[selectedGroup]
+        }
+        attributeFilterOptions={attributeFilterOptions}
+      />
     </>
   )
 }

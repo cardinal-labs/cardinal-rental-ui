@@ -1,16 +1,29 @@
-import { TokenManagerState } from '@cardinal/token-manager/dist/cjs/programs/tokenManager'
-import type { TokenData } from 'api/api'
+import type { TokenData } from 'apis/api'
 import type { AirdropMetadata } from 'common/Airdrop'
+import type { IconKey } from 'common/Socials'
 import type {
   DurationOption,
   RentalCardConfig,
-} from 'rental-components/components/RentalCard'
+} from 'rental-components/components/RentalIssueCard'
 
 import type { UserTokenData } from '../hooks/useUserTokenData'
 
+export const COLORS = {
+  primary: '#907EFF',
+  accent: '#7EFFE8',
+  glow: '#CE81F4',
+  'light-0': '#FFFFFF',
+  'light-1': '#F5E2FF',
+  'light-2': '#B1AFBB',
+  'medium-3': '#8D8B9B',
+  'medium-4': '#6D6C7C',
+  'dark-5': '#0B0B0B',
+  'dark-6': '#000000',
+}
+
 export type Colors = {
-  main: string
-  secondary: string
+  accent: string
+  glow: string
 }
 
 export type TokenFilter = {
@@ -18,37 +31,54 @@ export type TokenFilter = {
   value: string[]
 }
 
-export type TokenSection = {
+export interface TokenSection {
+  id: string
   header?: string
   description?: string
-  icon?: 'time' | 'featured' | 'listed' | 'rented' | 'available'
+  icon?:
+    | 'time'
+    | 'featured'
+    | 'listed'
+    | 'rented'
+    | 'available'
+    | 'info'
+    | 'performance'
   filter?: TokenFilter
   tokens?: TokenData[] | UserTokenData[]
   showEmpty?: boolean
 }
 
+export type Badge = {
+  badgeType: 'recent' | 'trending' | 'expiration'
+  position?: 'top-right' | 'top-left' | 'bottom-left' | 'bottom-right'
+  content?: JSX.Element | string
+}
+
 export type ProjectConfig = {
   type: 'Collection' | 'Guild'
-  issuer?: {
-    publicKeyString?: string
-  }
   hidden?: boolean
   indexDisabled?: boolean
   issuedOnly?: boolean
   name: string
   displayName: string
   websiteUrl: string
+  hero?: string
+  description?: string
+  twitterHandle?: string
+  socialLinks?: {
+    icon: IconKey
+    link: string
+  }[]
   logoImage: string
+  logoPadding?: boolean
   colors: Colors
+  badges?: Badge[]
   disableListing?: boolean
   filter?: TokenFilter
   sections?: TokenSection[]
   rentalCard: RentalCardConfig
   airdrops?: AirdropMetadata[]
-  browse?: {
-    hideFilters?: boolean
-  }
-  showUnknownInvalidate?: boolean
+  showUnknownInvalidators?: boolean
   marketplaceRate?: DurationOption
   allowOneByCreators?: {
     address: string
@@ -59,263 +89,46 @@ export type ProjectConfig = {
 }
 
 export const projectConfigs: { [key: string]: ProjectConfig } = {
-  default: {
-    name: 'default',
-    displayName: 'default',
-    hidden: true,
+  rooniverse: {
+    name: 'rooniverse',
+    displayName: 'Rooniverse',
     type: 'Collection',
-    websiteUrl: 'https://cardinal.so',
-    logoImage: 'https://main.cardinal.so/assets/cardinal-titled.png',
+    websiteUrl: 'https://www.playrooniverse.com/',
+    logoImage: '/logos/rooniverse.png',
+    hero: '/logos/rooniverse-hero.png',
     colors: {
-      main: 'rgb(26, 27, 32)',
-      secondary: 'rgb(29, 155, 240)',
+      accent: '#b338ef',
+      // #1abfdd alternative
+      glow: '#b338ef',
     },
-    rentalCard: {
-      invalidators: ['duration', 'usages', 'expiration', 'manual', 'rate'],
-      extensionOptions: { showDisablePartialExtension: true },
-      invalidationOptions: {
-        maxDurationAllowed: {
-          displayText: '12 weeks',
-          value: 7258000,
-        },
-      },
-    },
-    airdrops: [
+    description:
+      'Enter the world of savage, tribal Roos who fight to the death for sport and glory! Collect resources across lands, battle with friends, and build your own corner of Rooniverse! Adopt a Roo to access our Mini-Rooyale pre-alpha demo sessions!',
+    twitterHandle: '@playrooniverse',
+    socialLinks: [
       {
-        name: 'Origin Jambo',
-        symbol: 'JAMB',
-        uri: 'https://arweave.net/XBoDa9TqiOZeXW_6bV8wvieD8fMQS6IHxKipwdvduCo',
+        icon: 'discord',
+        link: 'https://discord.gg/rooniverse',
       },
       {
-        name: 'Solana Monkey Business',
-        symbol: 'SMB',
-        uri: 'https://arweave.net/VjfB54_BbELJ5bc1kH-kddrXfq5noloSjkcvK2Odhh0',
+        icon: 'web',
+        link: 'https://www.playrooniverse.com/',
       },
       {
-        name: 'Degen Ape',
-        symbol: 'DAPE',
-        uri: 'https://arweave.net/mWra8rTxavmbCnqxs6KoWwa0gC9uM8NMeOsyVhDy0-E',
-      },
-      {
-        name: 'Thugbirdz',
-        symbol: 'THUG',
-        uri: 'https://arweave.net/l9VXqVWCsiKW-R8ShX8jknFPgBibrhQI1JRgUI9uvbw',
-      },
-      {
-        name: 'Turtles',
-        symbol: 'TRTL',
-        uri: 'https://arweave.net/KKbhlHaPMOB9yMm9yG_i7PxzK0y24I5C7gNTaRDI9OE',
-      },
-      {
-        name: 'Almost Famous Pandas',
-        symbol: 'AFP',
-        uri: '8cs7hpBcuiRbzcdUY5BHpCFCgv1m8JhpZEVHUkYTmhnA',
-      },
-      {
-        name: 'Shi Guardians',
-        symbol: 'SHI',
-        uri: 'https://arweave.net/hSI4WIsX10yRWnzgXP8oqwSCaSgPfGU5nSN-Pxjslao',
-      },
-      {
-        name: 'Hacker House',
-        symbol: 'HH',
-        uri: 'https://arweave.net/DLDhnabWSXzAYktEhEKyukt3GIfagj2rPpWncw-KDQo',
-      },
-      {
-        name: '21 Club',
-        symbol: '21',
-        uri: 'https://bafkreicv3jj6oc53kid76mkk7hqsr6edrnhsydkw4do4vonq777sgfz3le.ipfs.dweb.link?ext=json',
+        icon: 'twitter',
+        link: 'https://twitter.com/playrooniverse',
       },
     ],
-  },
-  vault: {
-    name: 'vault',
-    displayName: 'vault',
-    hidden: true,
-    type: 'Collection',
-    websiteUrl: 'https://cardinal.so',
-    logoImage: 'https://main.cardinal.so/assets/cardinal-titled.png',
-    colors: {
-      main: 'rgb(26, 27, 32)',
-      secondary: 'rgb(29, 155, 240)',
-    },
-    rentalCard: {
-      invalidators: ['duration', 'usages', 'expiration', 'manual'],
-      extensionOptions: { showDisablePartialExtension: true },
-      invalidationOptions: {
-        maxDurationAllowed: {
-          displayText: '12 weeks',
-          value: 7258000,
-        },
-      },
-    },
-    airdrops: [
-      {
-        name: 'Origin Jambo',
-        symbol: 'JAMB',
-        uri: 'https://arweave.net/XBoDa9TqiOZeXW_6bV8wvieD8fMQS6IHxKipwdvduCo',
-      },
-      {
-        name: 'Solana Monkey Business',
-        symbol: 'SMB',
-        uri: 'https://arweave.net/VjfB54_BbELJ5bc1kH-kddrXfq5noloSjkcvK2Odhh0',
-      },
-      {
-        name: 'Degen Ape',
-        symbol: 'DAPE',
-        uri: 'https://arweave.net/mWra8rTxavmbCnqxs6KoWwa0gC9uM8NMeOsyVhDy0-E',
-      },
-      {
-        name: 'Thugbirdz',
-        symbol: 'THUG',
-        uri: 'https://arweave.net/l9VXqVWCsiKW-R8ShX8jknFPgBibrhQI1JRgUI9uvbw',
-      },
-      {
-        name: 'Turtles',
-        symbol: 'TRTL',
-        uri: 'https://arweave.net/KKbhlHaPMOB9yMm9yG_i7PxzK0y24I5C7gNTaRDI9OE',
-      },
-      {
-        name: 'Almost Famous Pandas',
-        symbol: 'AFP',
-        uri: '8cs7hpBcuiRbzcdUY5BHpCFCgv1m8JhpZEVHUkYTmhnA',
-      },
-      {
-        name: 'Shi Guardians',
-        symbol: 'SHI',
-        uri: 'https://arweave.net/hSI4WIsX10yRWnzgXP8oqwSCaSgPfGU5nSN-Pxjslao',
-      },
-      {
-        name: 'Hacker House',
-        symbol: 'HH',
-        uri: 'https://arweave.net/DLDhnabWSXzAYktEhEKyukt3GIfagj2rPpWncw-KDQo',
-      },
-      {
-        name: '21 Club',
-        symbol: '21',
-        uri: 'https://bafkreicv3jj6oc53kid76mkk7hqsr6edrnhsydkw4do4vonq777sgfz3le.ipfs.dweb.link?ext=json',
-      },
-    ],
-  },
-  all: {
-    name: 'all',
-    displayName: 'all',
-    type: 'Collection',
-    websiteUrl: 'https://cardinal.so',
-    logoImage: '/logos/all.svg',
-    hidden: true,
-    issuedOnly: true,
-    colors: {
-      main: 'rgb(26, 27, 32)',
-      secondary: 'rgb(29, 155, 240)',
-    },
-    rentalCard: {
-      invalidators: ['duration', 'usages', 'expiration', 'manual', 'rate'],
-      extensionOptions: { showDisablePartialExtension: true },
-      invalidationOptions: {
-        maxDurationAllowed: {
-          displayText: '12 weeks',
-          value: 7258000,
-        },
-      },
-    },
-    airdrops: [
-      {
-        name: 'Origin Jambo',
-        symbol: 'JAMB',
-        uri: 'https://arweave.net/XBoDa9TqiOZeXW_6bV8wvieD8fMQS6IHxKipwdvduCo',
-      },
-      {
-        name: 'Solana Monkey Business',
-        symbol: 'SMB',
-        uri: 'https://arweave.net/VjfB54_BbELJ5bc1kH-kddrXfq5noloSjkcvK2Odhh0',
-      },
-      {
-        name: 'Degen Ape',
-        symbol: 'DAPE',
-        uri: 'https://arweave.net/mWra8rTxavmbCnqxs6KoWwa0gC9uM8NMeOsyVhDy0-E',
-      },
-      {
-        name: 'Thugbirdz',
-        symbol: 'THUG',
-        uri: 'https://arweave.net/l9VXqVWCsiKW-R8ShX8jknFPgBibrhQI1JRgUI9uvbw',
-      },
-      {
-        name: 'Turtles',
-        symbol: 'TRTL',
-        uri: 'https://arweave.net/KKbhlHaPMOB9yMm9yG_i7PxzK0y24I5C7gNTaRDI9OE',
-      },
-      {
-        name: 'Almost Famous Pandas',
-        symbol: 'AFP',
-        uri: '8cs7hpBcuiRbzcdUY5BHpCFCgv1m8JhpZEVHUkYTmhnA',
-      },
-      {
-        name: 'Shi Guardians',
-        symbol: 'SHI',
-        uri: 'https://arweave.net/hSI4WIsX10yRWnzgXP8oqwSCaSgPfGU5nSN-Pxjslao',
-      },
-      {
-        name: 'Hacker House',
-        symbol: 'HH',
-        uri: 'https://arweave.net/DLDhnabWSXzAYktEhEKyukt3GIfagj2rPpWncw-KDQo',
-      },
-      {
-        name: '21 Club',
-        symbol: '21',
-        uri: 'https://bafkreicv3jj6oc53kid76mkk7hqsr6edrnhsydkw4do4vonq777sgfz3le.ipfs.dweb.link?ext=json',
-      },
-    ],
-    marketplaceRate: 'days',
-  },
-  portals: {
-    name: 'portals',
-    displayName: 'Portals',
-    type: 'Collection',
-    websiteUrl: 'https://theportal.to/',
-    logoImage: '/logos/portals.svg',
-    colors: {
-      main: '#000',
-      secondary: '#80ddef',
-    },
-    sections: [
-      {
-        header: 'Featured',
-        description: 'Cardinal Room Design Competition',
-        icon: 'featured',
-        filter: {
-          type: 'issuer',
-          value: ['41qJ9dJemw8mrry2BD1wU6B2aHXN4RoNY79bS7xwDPhM'],
-        },
-      },
-      {
-        header: 'Listed',
-        icon: 'listed',
-        filter: {
-          type: 'state',
-          value: [TokenManagerState.Issued.toString()],
-        },
-      },
-      {
-        header: 'Claimed',
-        icon: 'time',
-        filter: {
-          type: 'state',
-          value: [TokenManagerState.Claimed.toString()],
-        },
-      },
-    ],
+    badges: [{ badgeType: 'recent' }],
     filter: {
       type: 'creators',
-      value: ['5grvMeoBqv5ZdHq9JMy5RrxLPNAt1nzc9cpqYWFUwizz'],
+      value: [
+        '3v6SQ2s8w5TYYzXeS5QLn2AD3sfwQLsg9HM3W2t2QDqE',
+        'FzeXx41UqWRqYxic3ftehHSTeq5bmaruYbsMrBn4b9qv',
+      ],
     },
     rentalCard: {
-      invalidators: ['rate', 'expiration', 'manual'],
+      invalidators: ['rate', 'duration'],
       invalidationOptions: {
-        freezeRentalRateDuration: {
-          value: '1',
-          durationOption: 'days',
-        },
         visibilities: ['public', 'private'],
         durationOptions: ['minutes', 'hours', 'days', 'weeks'],
         invalidationTypes: ['reissue'],
@@ -327,7 +140,217 @@ export const projectConfigs: { [key: string]: ProjectConfig } = {
           value: 7258000,
         },
       },
-      paymentManager: 'cprtEVpR3uPs38USVq1MYrPMW7exZTnq2kRNSuvjvYM',
+    },
+    marketplaceRate: 'days',
+  },
+  hoa: {
+    name: 'hoa',
+    displayName: 'Homeowners Association (Parcl)',
+    type: 'Collection',
+    websiteUrl: 'https://www.hoa.house/',
+    hero: '/logos/parcl-hero.png',
+    description:
+      'Homeowners Association (HOA) is an NFT project by Parcl, consisting of 7,777 unique combinations of iconic homes from four unique cities.',
+    logoImage: '/logos/parcl.gif',
+    colors: {
+      accent: '#10abf0',
+      glow: '#005eff',
+    },
+    socialLinks: [
+      {
+        icon: 'discord',
+        link: 'https://discord.gg/parcl',
+      },
+      {
+        icon: 'web',
+        link: 'https://www.hoa.house/',
+      },
+      {
+        icon: 'twitter',
+        link: 'https://twitter.com/parcl',
+      },
+    ],
+    badges: [{ badgeType: 'recent' }],
+    filter: {
+      type: 'creators',
+      value: ['Cp3Fn6azbwtSG9LV1BWtQcAkQQiaQWDkc2LcqwaEuLuq'],
+    },
+    rentalCard: {
+      invalidators: ['rate'],
+      invalidationOptions: {
+        visibilities: ['public', 'private'],
+        durationOptions: ['minutes', 'hours', 'days', 'weeks'],
+        invalidationTypes: ['reissue'],
+        paymentMints: ['So11111111111111111111111111111111111111112'],
+        showClaimRentalReceipt: false,
+        setClaimRentalReceipt: false,
+        maxDurationAllowed: {
+          displayText: '12 weeks',
+          value: 7258000,
+        },
+      },
+    },
+    marketplaceRate: 'days',
+    airdrops: [],
+  },
+  miniroyale: {
+    name: 'miniroyale',
+    displayName: 'Mini Royale',
+    type: 'Collection',
+    websiteUrl: 'https://miniroyale.io/',
+    hero: '/logos/miniroyale-hero.png',
+    description:
+      'MiniRoyale is a web browser game with battle royale game mode. The game comes with 3D graphics and unique style.',
+    logoImage: '/logos/miniroyale.png',
+    logoPadding: true,
+    twitterHandle: '@MiniNations',
+    colors: {
+      accent: '#2584df',
+      glow: '#2584df',
+    },
+    socialLinks: [
+      {
+        icon: 'discord',
+        link: 'https://discord.com/invite/miniroyale',
+      },
+      {
+        icon: 'web',
+        link: 'https://miniroyale.io/',
+      },
+      {
+        icon: 'twitter',
+        link: 'https://twitter.com/MiniNations',
+      },
+    ],
+    badges: [{ badgeType: 'trending' }],
+    filter: {
+      type: 'creators',
+      value: [
+        'CbPuZtVMAWwPySvsUAEbZhe8y9rkeAZ5qLhsGBVvtau9',
+        'EpgYkzyAXPDq11G5ngctWcjq7pKSfUtEnjVcYPs2jhGY',
+        'EoYTpE5HuTaXkN2AWDAgGA3JbhtPdeqnUiY9rdG7hMf',
+        '3TVyY5Tw9CuKj7EJwaawacDqBM5jnbeL1kRUvhDPvxH4',
+        'GgT69RnQwQhE8cmnTivRHSPfvXwd3HirdbnHQBaHgqwt',
+        '4hgG6XRBwGNsFpuCnBJMGi9iQteWmULM4nX6zSsgDKgz',
+      ],
+    },
+    rentalCard: {
+      paymentManager: 'mainnet-cardinal-mini-royale',
+      invalidators: ['rate', 'duration', 'expiration', 'manual'],
+      invalidationOptions: {
+        visibilities: ['public', 'private'],
+        durationOptions: ['minutes', 'hours', 'days', 'weeks'],
+        invalidationTypes: ['reissue', 'return'],
+        paymentMints: ['So11111111111111111111111111111111111111112'],
+        showClaimRentalReceipt: false,
+        setClaimRentalReceipt: false,
+        maxDurationAllowed: {
+          displayText: '12 weeks',
+          value: 7258000,
+        },
+      },
+    },
+    marketplaceRate: 'days',
+    airdrops: [
+      {
+        name: 'Miniverse Hero #03016',
+        symbol: 'MINIROYALE',
+        uri: 'https://arweave.net/QfhzPB4a2txBl1Myumyq4431klq6HjDUwacPfS07W4Y',
+      },
+      {
+        name: 'Miniverse Weapon #184776',
+        symbol: 'MINIROYALE',
+        uri: 'https://arweave.net/amSCKytNSZy5cxuoJx-PSY0qMQK6ZAZzD4QnzyMzvBk',
+      },
+      {
+        name: 'Miniverse Hero #0720',
+        symbol: 'MINIROYALE',
+        uri: 'https://bafybeiat55vtqutsbtyz5u3ufjru7iiv6giete4bdu3mbgqhaxjvnelc7u.ipfs.nftstorage.link/89.json',
+      },
+      {
+        name: 'Miniverse Weapon #27339',
+        symbol: 'MINIROYALE',
+        uri: 'https://tokens.miniroyale.io/token-data?expires=4806495451&id=904c950a-309b-4fee-9bd4-504771ed2df9&token=BhknUWE6vXAElVhxWKE-YX6_4_acumpPP8q3ZQnsvR8',
+      },
+    ],
+  },
+  portals: {
+    name: 'portals',
+    displayName: 'Portals',
+    type: 'Collection',
+    websiteUrl: 'https://theportal.to/',
+    logoImage: '/logos/portals.svg',
+    logoPadding: true,
+    colors: {
+      accent: '#80ddef',
+      glow: '#80ddef',
+    },
+    hero: '/logos/portals-hero.png',
+    twitterHandle: '@_portals_',
+    description:
+      'The Metaverse on Solana. Explore downtown, invite friends, chat, build, show off your NFTs — right in the browser.',
+    socialLinks: [
+      {
+        icon: 'discord',
+        link: 'https://discord.gg/9uMBaCPW3f',
+      },
+      {
+        icon: 'web',
+        link: 'https://theportal.to/',
+      },
+      {
+        icon: 'twitter',
+        link: 'https://twitter.com/_portals_',
+      },
+    ],
+    // sections: [
+    // {
+    //   header: 'Featured',
+    //   description: 'Cardinal Room Design Competition',
+    //   icon: 'featured',
+    //   filter: {
+    //     type: 'issuer',
+    //     value: ['5grvMeoBqv5ZdHq9JMy5RrxLPNAt1nzc9cpqYWFUwizz'],
+    //   },
+    // },
+    // {
+    //   header: 'Listed',
+    //   icon: 'listed',
+    //   filter: {
+    //     type: 'state',
+    //     value: [TokenManagerState.Issued.toString()],
+    //   },
+    // },
+    // {
+    //   header: 'Claimed',
+    //   icon: 'time',
+    //   filter: {
+    //     type: 'state',
+    //     value: [TokenManagerState.Claimed.toString()],
+    //   },
+    // },
+    // ],
+    filter: {
+      type: 'creators',
+      value: ['5grvMeoBqv5ZdHq9JMy5RrxLPNAt1nzc9cpqYWFUwizz'],
+    },
+    rentalCard: {
+      invalidators: ['rate', 'expiration', 'duration', 'manual'],
+      invalidationOptions: {
+        visibilities: ['public', 'private'],
+        durationOptions: ['minutes', 'hours', 'days', 'weeks'],
+        invalidationTypes: ['reissue', 'return'],
+        customInvalidationTypes: {
+          '41qJ9dJemw8mrry2BD1wU6B2aHXN4RoNY79bS7xwDPhM': ['return'],
+        },
+        paymentMints: ['So11111111111111111111111111111111111111112'],
+        showClaimRentalReceipt: false,
+        setClaimRentalReceipt: false,
+        maxDurationAllowed: {
+          displayText: '12 weeks',
+          value: 7258000,
+        },
+      },
     },
     airdrops: [
       {
@@ -356,21 +379,37 @@ export const projectConfigs: { [key: string]: ProjectConfig } = {
     //   },
     // ],
   },
-  monke: {
-    name: 'monke',
-    displayName: 'Monke',
+  smb: {
+    name: 'smb',
+    displayName: 'Solana Monkey Business',
     type: 'Collection',
     websiteUrl: 'https://market.solanamonkey.business/',
     logoImage: '/logos/smb-large.png',
+    hero: '/logos/smb-hero.png',
+    description: '5000 inspired generative NFTs.',
+    socialLinks: [
+      {
+        icon: 'discord',
+        link: 'https://discord.com/invite/solanamonkeybusiness',
+      },
+      {
+        icon: 'twitter',
+        link: 'https://twitter.com/SolanaMBS',
+      },
+      {
+        icon: 'web',
+        link: 'https://solanamonkey.business/',
+      },
+    ],
     colors: {
-      main: '#202225',
-      secondary: '#CCCDFF',
+      accent: '#cccdff',
+      glow: '#cccdff',
     },
     filter: {
       type: 'creators',
       value: ['9uBX3ASjxWvNBAD1xjbVaKA74mWGZys3RGSF7DdeDD3F'],
     },
-    showUnknownInvalidate: true,
+    showUnknownInvalidators: true,
     rentalCard: {
       invalidators: ['rate', 'duration', 'manual'],
       invalidationOptions: {
@@ -418,8 +457,8 @@ export const projectConfigs: { [key: string]: ProjectConfig } = {
     logoImage:
       'https://static.wixstatic.com/media/a5e645_ede493815397419cad3c618bd7cb4aa4~mv2.png/v1/fill/w_888,h_390,al_c,usm_0.66_1.00_0.01,enc_auto/Artboard%202%20copy%204-1.png',
     colors: {
-      main: 'rgb(0,0,0)',
-      secondary: 'rgb(169,60,239)',
+      accent: 'rgb(169,60,239)',
+      glow: 'rgb(169,60,239)',
     },
     filter: {
       type: 'creators',
@@ -455,9 +494,10 @@ export const projectConfigs: { [key: string]: ProjectConfig } = {
     type: 'Collection',
     websiteUrl: 'https://www.defiland.app/',
     logoImage: 'https://defiland.app/_nuxt/img/defiland.74b3850.svg',
+    logoPadding: true,
     colors: {
-      main: '#2d1923',
-      secondary: '#ad4933',
+      accent: '#CD9373',
+      glow: '#CD9373',
     },
     filter: {
       type: 'creators',
@@ -496,9 +536,10 @@ export const projectConfigs: { [key: string]: ProjectConfig } = {
     type: 'Collection',
     websiteUrl: 'https://metaopsgaming.com/',
     logoImage: '/logos/metaops.png',
+    logoPadding: true,
     colors: {
-      main: '#544046',
-      secondary: '#e24040',
+      accent: '#b55b5e',
+      glow: '#b55b5e',
     },
     filter: {
       type: 'creators',
@@ -559,8 +600,8 @@ export const projectConfigs: { [key: string]: ProjectConfig } = {
     websiteUrl: 'https://psyker.game/',
     logoImage: '/logos/psyker.png',
     colors: {
-      main: '#00101b',
-      secondary: '#ff0034',
+      accent: '#a4051d',
+      glow: '#a4051d',
     },
     filter: {
       type: 'creators',
@@ -615,250 +656,105 @@ export const projectConfigs: { [key: string]: ProjectConfig } = {
     ],
     marketplaceRate: 'days',
   },
-  thugbirdz: {
-    name: 'thugbirdz',
-    displayName: 'Thugbirdz',
-    type: 'Collection',
-    websiteUrl: 'https://www.thugbirdz.com/#/',
-    logoImage: 'https://www.thugbirdz.com/icon.png',
+  // empiredao: {
+  //   name: 'empiredao',
+  //   displayName: 'Empire DAO',
+  //   type: 'Collection',
+  //   websiteUrl: 'https://empiredao.xyz/',
+  //   logoImage: '/logos/empiredao.png',
+  //   colors: {
+  //     accent: '#CCCDFF',
+  //   },
+  //   filter: {
+  //     type: 'issuer',
+  //     value: ['edaoJQRZZ3hfNottaxe9z5o2owJDJgL1bUChiPk15KN'],
+  //   },
+  //   rentalCard: {
+  //     invalidators: ['expiration'],
+  //     invalidationOptions: {
+  //       visibilities: ['public'],
+  //       durationOptions: ['minutes', 'hours', 'days', 'weeks'],
+  //       invalidationTypes: ['reissue'],
+  //       paymentMints: ['So11111111111111111111111111111111111111112'],
+  //       showClaimRentalReceipt: false,
+  //       setClaimRentalReceipt: false,
+  //       maxDurationAllowed: {
+  //         displayText: '3 weeks',
+  //         value: 7258000,
+  //       },
+  //     },
+  //   },
+  //   marketplaceRate: 'days',
+  //   airdrops: [],
+  // },
+  default: {
+    name: 'default',
+    displayName: 'Unverified',
     hidden: true,
+    type: 'Collection',
+    websiteUrl: 'https://cardinal.so',
+    logoImage: 'https://main.cardinal.so/assets/cardinal-titled.png',
     colors: {
-      main: 'rgb(26, 27, 32)',
-      secondary: '#9c74fc',
-    },
-    filter: {
-      type: 'creators',
-      value: ['CzrE3LhijwcmvsXZa8YavqgR9EzW3UGqoSWZKwGpZVqM'],
+      accent: '#7560FF',
+      glow: '#7560FF',
     },
     rentalCard: {
-      invalidators: ['rate'],
+      invalidators: ['rate', 'duration', 'expiration', 'manual'],
+      extensionOptions: { showDisablePartialExtension: true },
       invalidationOptions: {
-        visibilities: ['public'],
-        durationOptions: ['minutes', 'hours', 'days', 'weeks'],
-        invalidationTypes: ['reissue'],
-        paymentMints: ['So11111111111111111111111111111111111111112'],
-        showClaimRentalReceipt: false,
-        setClaimRentalReceipt: false,
         maxDurationAllowed: {
           displayText: '12 weeks',
           value: 7258000,
         },
       },
     },
-    marketplaceRate: 'days',
     airdrops: [
+      {
+        name: 'Origin Jambo',
+        symbol: 'JAMB',
+        uri: 'https://arweave.net/XBoDa9TqiOZeXW_6bV8wvieD8fMQS6IHxKipwdvduCo',
+      },
+      {
+        name: 'Solana Monkey Business',
+        symbol: 'SMB',
+        uri: 'https://arweave.net/VjfB54_BbELJ5bc1kH-kddrXfq5noloSjkcvK2Odhh0',
+      },
+      {
+        name: 'Degen Ape',
+        symbol: 'DAPE',
+        uri: 'https://arweave.net/mWra8rTxavmbCnqxs6KoWwa0gC9uM8NMeOsyVhDy0-E',
+      },
       {
         name: 'Thugbirdz',
         symbol: 'THUG',
         uri: 'https://arweave.net/l9VXqVWCsiKW-R8ShX8jknFPgBibrhQI1JRgUI9uvbw',
       },
-    ],
-  },
-  miniroyale: {
-    name: 'miniroyale',
-    displayName: 'Mini Royale',
-    type: 'Collection',
-    websiteUrl: 'https://miniroyale.io/',
-    logoImage: '/logos/miniroyale.png',
-    colors: {
-      main: '#192836',
-      secondary: '#FFB60C',
-    },
-    filter: {
-      type: 'creators',
-      value: [
-        'CbPuZtVMAWwPySvsUAEbZhe8y9rkeAZ5qLhsGBVvtau9',
-        'EpgYkzyAXPDq11G5ngctWcjq7pKSfUtEnjVcYPs2jhGY',
-        'EoYTpE5HuTaXkN2AWDAgGA3JbhtPdeqnUiY9rdG7hMf',
-        '3TVyY5Tw9CuKj7EJwaawacDqBM5jnbeL1kRUvhDPvxH4',
-        'GgT69RnQwQhE8cmnTivRHSPfvXwd3HirdbnHQBaHgqwt',
-        '4hgG6XRBwGNsFpuCnBJMGi9iQteWmULM4nX6zSsgDKgz',
-      ],
-    },
-    rentalCard: {
-      paymentManager: 'mainnet-cardinal-mini-royale',
-      invalidators: ['rate'],
-      invalidationOptions: {
-        visibilities: ['public', 'private'],
-        durationOptions: ['minutes', 'hours', 'days', 'weeks'],
-        invalidationTypes: ['reissue'],
-        paymentMints: ['So11111111111111111111111111111111111111112'],
-        showClaimRentalReceipt: false,
-        setClaimRentalReceipt: false,
-        maxDurationAllowed: {
-          displayText: '3 weeks',
-          value: 7258000,
-        },
-      },
-    },
-    marketplaceRate: 'days',
-    airdrops: [
       {
-        name: 'Miniverse Hero #03016',
-        symbol: 'MINIROYALE',
-        uri: 'https://arweave.net/QfhzPB4a2txBl1Myumyq4431klq6HjDUwacPfS07W4Y',
+        name: 'Turtles',
+        symbol: 'TRTL',
+        uri: 'https://arweave.net/KKbhlHaPMOB9yMm9yG_i7PxzK0y24I5C7gNTaRDI9OE',
       },
       {
-        name: 'Miniverse Weapon #184776',
-        symbol: 'MINIROYALE',
-        uri: 'https://arweave.net/amSCKytNSZy5cxuoJx-PSY0qMQK6ZAZzD4QnzyMzvBk',
+        name: 'Almost Famous Pandas',
+        symbol: 'AFP',
+        uri: '8cs7hpBcuiRbzcdUY5BHpCFCgv1m8JhpZEVHUkYTmhnA',
       },
       {
-        name: 'Miniverse Hero #0720',
-        symbol: 'MINIROYALE',
-        uri: 'https://bafybeiat55vtqutsbtyz5u3ufjru7iiv6giete4bdu3mbgqhaxjvnelc7u.ipfs.nftstorage.link/89.json',
+        name: 'Shi Guardians',
+        symbol: 'SHI',
+        uri: 'https://arweave.net/hSI4WIsX10yRWnzgXP8oqwSCaSgPfGU5nSN-Pxjslao',
       },
       {
-        name: 'Miniverse Weapon #27339',
-        symbol: 'MINIROYALE',
-        uri: 'https://tokens.miniroyale.io/token-data?expires=4806495451&id=904c950a-309b-4fee-9bd4-504771ed2df9&token=BhknUWE6vXAElVhxWKE-YX6_4_acumpPP8q3ZQnsvR8',
+        name: 'Hacker House',
+        symbol: 'HH',
+        uri: 'https://arweave.net/DLDhnabWSXzAYktEhEKyukt3GIfagj2rPpWncw-KDQo',
+      },
+      {
+        name: '21 Club',
+        symbol: '21',
+        uri: 'https://bafkreicv3jj6oc53kid76mkk7hqsr6edrnhsydkw4do4vonq777sgfz3le.ipfs.dweb.link?ext=json',
       },
     ],
-  },
-  empiredao: {
-    name: 'empiredao',
-    displayName: 'Empire DAO',
-    type: 'Collection',
-    websiteUrl: 'https://empiredao.xyz/',
-    logoImage: '/logos/empiredao.png',
-    colors: {
-      main: '#202225',
-      secondary: '#CCCDFF',
-    },
-    hidden: true,
-    indexDisabled: true,
-    filter: {
-      type: 'issuer',
-      value: ['edaoJQRZZ3hfNottaxe9z5o2owJDJgL1bUChiPk15KN'],
-    },
-    rentalCard: {
-      invalidators: ['expiration'],
-      invalidationOptions: {
-        visibilities: ['public'],
-        durationOptions: ['minutes', 'hours', 'days', 'weeks'],
-        invalidationTypes: ['reissue'],
-        paymentMints: ['So11111111111111111111111111111111111111112'],
-        showClaimRentalReceipt: false,
-        setClaimRentalReceipt: false,
-        maxDurationAllowed: {
-          displayText: '3 weeks',
-          value: 7258000,
-        },
-      },
-    },
-    marketplaceRate: 'days',
-    airdrops: [],
-  },
-  degods: {
-    name: 'degods',
-    displayName: 'DeGods',
-    type: 'Collection',
-    websiteUrl: 'https://www.degods.com/',
-    logoImage: '/logos/degods.svg',
-    hidden: true,
-    colors: {
-      main: '#0F0F0F',
-      secondary: '#6001FF',
-    },
-    filter: {
-      type: 'creators',
-      value: ['AxFuniPo7RaDgPH6Gizf4GZmLQFc4M5ipckeeZfkrPNn'],
-    },
-    rentalCard: {
-      invalidators: ['rate', 'duration'],
-      invalidationOptions: {
-        freezeRentalRateDuration: {
-          value: '1',
-          durationOption: 'days',
-        },
-        durationOptions: ['hours', 'days', 'weeks', 'years'],
-        visibilities: ['public'],
-        invalidationTypes: ['reissue'],
-        paymentMints: ['So11111111111111111111111111111111111111112'],
-        setClaimRentalReceipt: true,
-        showClaimRentalReceipt: false,
-        maxDurationAllowed: {
-          displayText: '12 weeks',
-          value: 7258000,
-        },
-      },
-    },
-    marketplaceRate: 'days',
-  },
-  monkenftnyc: {
-    name: 'monkenftnyc',
-    displayName: 'Monke NFT NYC',
-    type: 'Collection',
-    websiteUrl: 'https://www.empiredao.xyz',
-    logoImage: '/logos/monkenftnyc.png',
-    hidden: true,
-    indexDisabled: true,
-    colors: {
-      main: '#202225',
-      secondary: '#CCCDFF',
-    },
-    filter: {
-      type: 'issuer',
-      value: ['mdaoH4C9SBQu2CQqudPbbct4uyo6PRrid1NNZsbSxef'],
-    },
-    rentalCard: {
-      invalidators: ['expiration'],
-      invalidationOptions: {
-        visibilities: ['public', 'private'],
-        durationOptions: ['minutes', 'hours', 'days', 'weeks'],
-        invalidationTypes: ['reissue', 'release'],
-        paymentMints: ['So11111111111111111111111111111111111111112'],
-        showClaimRentalReceipt: false,
-        setClaimRentalReceipt: false,
-        maxDurationAllowed: {
-          displayText: '3 weeks',
-          value: 7258000,
-        },
-      },
-    },
-    marketplaceRate: 'days',
-    airdrops: [
-      {
-        name: 'MonkeDAO NFT NYC Ticket',
-        symbol: 'SMBNFT',
-        uri: '/metadata/monkenftnyc.json',
-      },
-    ],
-  },
-  ['all-starz']: {
-    name: 'all-starz',
-    displayName: 'All Starz',
-    type: 'Guild',
-    websiteUrl: 'https://all-starz.gitbook.io/all-starz/',
-    logoImage: '/logos/all-starz.jpg',
-    colors: {
-      main: '#000',
-      secondary: '#f71202',
-    },
-    filter: {
-      type: 'issuer',
-      value: ['Cx2FDbdfqezYiN8teLFdFAzdv9mwG48uYbe218Az4EMP'],
-    },
-    rentalCard: {
-      invalidators: ['rate', 'duration'],
-      invalidationOptions: {
-        freezeRentalRateDuration: {
-          value: '1',
-          durationOption: 'days',
-        },
-        visibilities: ['public'],
-        durationOptions: ['minutes', 'hours', 'days', 'weeks'],
-        invalidationTypes: ['reissue'],
-        paymentMints: ['So11111111111111111111111111111111111111112'],
-        showClaimRentalReceipt: false,
-        setClaimRentalReceipt: false,
-        maxDurationAllowed: {
-          displayText: '12 weeks',
-          value: 7258000,
-        },
-      },
-    },
-    marketplaceRate: 'days',
   },
   ['3dgamersguild']: {
     name: '3dgamersguild',
@@ -867,9 +763,10 @@ export const projectConfigs: { [key: string]: ProjectConfig } = {
     websiteUrl: 'https://www.3dgamersguild.com/',
     logoImage:
       'https://images.squarespace-cdn.com/content/v1/618b2aec73c8ed19abf2fd2f/c4a759b4-91d5-462a-bd6d-ce3766ffda2f/3D+Gamers+Logo+with+white+letters+white+text.png?format=1500w',
+    logoPadding: true,
     colors: {
-      main: 'rgb(26, 27, 32)',
-      secondary: '#34659b',
+      accent: '#34659b',
+      glow: '#34659b',
     },
     filter: {
       type: 'issuer',
@@ -903,9 +800,28 @@ export const projectConfigs: { [key: string]: ProjectConfig } = {
     websiteUrl: 'https://www.udderchaos.io/',
     logoImage: 'logos/udderchaos-logo.png',
     colors: {
-      main: 'rgb(26, 27, 32)',
-      secondary: '#a5b6f6',
+      accent: '#f9e7c9',
+      glow: '#f9e7c9',
     },
+    description:
+      'Udder Chaos is a project built on a sustainable business model. Operating a Solana Validator drives consistent income for the project on top of accent sales, while also being supported by their RPC rentals and NFT rental treasury. They are also developing Alpha Audits, an NFT reviewing platform with a review-to-earn mechanism.',
+    hero: 'logos/udderchaos-hero.png',
+    socialLinks: [
+      {
+        icon: 'twitter',
+        link: 'https://twitter.com/UdderChaosSOL',
+      },
+      {
+        icon: 'discord',
+        link: 'https://discord.gg/udderchaos',
+      },
+      {
+        icon: 'web',
+
+        link: 'https://www.udderchaos.io/',
+      },
+    ],
+    badges: [{ badgeType: 'recent' }],
     filter: {
       type: 'issuer',
       value: ['F65oeXXQaDQYnmQKTmmMpZ5XaLBzoUC16pMTg59RfpK6'],
@@ -920,6 +836,153 @@ export const projectConfigs: { [key: string]: ProjectConfig } = {
           'MLKmUCaj1dpBY881aFsrBwR9RUMoKic8SWT3u1q5Nkj',
           'So11111111111111111111111111111111111111112',
         ],
+        showClaimRentalReceipt: false,
+        setClaimRentalReceipt: false,
+        maxDurationAllowed: {
+          displayText: '12 weeks',
+          value: 7258000,
+        },
+      },
+    },
+    marketplaceRate: 'days',
+  },
+  ['fatcats']: {
+    name: 'fatcats',
+    displayName: 'Fatcats',
+    type: 'Guild',
+    websiteUrl: 'https://fatcatscapital.com/',
+    logoImage: 'logos/fatcats.png',
+    colors: {
+      accent: '#397fd6',
+      glow: '#397fd6',
+    },
+    description:
+      'The FatCats Capital Club (FCC) is a community focused on the development of projects looking to advance the Solana ecosystem as a whole. Through the FatCats Accelerator program, both holders and project creators can benefit from services the FCC provides.',
+    hero: 'logos/fatcats-hero.png',
+    socialLinks: [
+      {
+        icon: 'twitter',
+        link: 'https://twitter.com/fatcatscapital',
+      },
+      {
+        icon: 'discord',
+        link: 'https://discord.com/invite/9FnX58FWVB',
+      },
+      {
+        icon: 'web',
+        link: 'https://fatcatscapital.com/',
+      },
+    ],
+    badges: [{ badgeType: 'recent' }],
+    filter: {
+      type: 'issuer',
+      value: ['Dx2svFqyhm1eFQTvKrETehLmrNHpNXhioqSHpXGzp5Xe'],
+    },
+    rentalCard: {
+      invalidators: ['rate', 'duration'],
+      invalidationOptions: {
+        visibilities: ['public'],
+        durationOptions: ['minutes', 'hours', 'days', 'weeks'],
+        invalidationTypes: ['reissue'],
+        paymentMints: ['FdviznPoMEakdJ37fikNxhoscyruUHSHNkKyvntSqbuo'],
+        showClaimRentalReceipt: false,
+        setClaimRentalReceipt: false,
+        maxDurationAllowed: {
+          displayText: '12 weeks',
+          value: 7258000,
+        },
+      },
+    },
+    marketplaceRate: 'days',
+  },
+  ['thedegenerates']: {
+    name: 'thedegenerates',
+    displayName: 'The Degenerates',
+    type: 'Guild',
+    websiteUrl: 'https://thedegen.app/',
+    logoImage: 'logos/thedegenerates.png',
+    colors: {
+      accent: '#ff7921',
+      glow: '#ff7921',
+    },
+    description:
+      'For degenerates by degenerates and home for all degenerates. Slowly taking over the Solana blockchain and beyond with tool help and info such as Mint Bot and sniper features, RPC locations, Degen Alerts, Wallet Manager, RPC Tester and Listing manager. Tool reviews and ratings by your fellow degenerates. Come get your degen on!',
+    hero: 'logos/thedegenerates-hero.png',
+    socialLinks: [
+      {
+        icon: 'twitter',
+        link: 'https://twitter.com/_DegeneratesNFT',
+      },
+      {
+        icon: 'discord',
+        link: 'https://discord.gg/thedegenerates',
+      },
+      {
+        icon: 'web',
+        link: 'https://thedegen.app/',
+      },
+    ],
+    badges: [{ badgeType: 'recent' }],
+    filter: {
+      type: 'issuer',
+      value: ['E6m3sYbjbzCVqtMpDuWjMBnJneJu5a4VnTorz8hpCDB5'],
+    },
+    rentalCard: {
+      invalidators: ['rate'],
+      invalidationOptions: {
+        visibilities: ['public'],
+        durationOptions: ['minutes', 'hours', 'days', 'weeks'],
+        invalidationTypes: ['reissue'],
+        paymentMints: ['So11111111111111111111111111111111111111112'],
+        showClaimRentalReceipt: false,
+        setClaimRentalReceipt: false,
+        maxDurationAllowed: {
+          displayText: '1 week',
+          value: 604800,
+        },
+      },
+    },
+    marketplaceRate: 'days',
+  },
+  ['syndicate-initiative']: {
+    name: 'syndicate-initiative',
+    displayName: 'SyNdicate Initiative',
+    type: 'Guild',
+    websiteUrl: 'https://www.twitch.tv/syndicateinitiative',
+    logoImage: 'logos/syndicate-initiative.png',
+    colors: {
+      accent: '#A45EE5',
+      glow: '#A45EE5',
+    },
+    description:
+      'Syndicate Initiative is a community of gamers focused on good vibes and competitive gaming in the developing web3 space. We coach eSports players and stream content on Twitch. Let’s build SyNi together and make a name in the web3 gaming space! #SyNi',
+    hero: 'logos/syndicate-initiative-hero.png',
+    socialLinks: [
+      {
+        icon: 'twitter',
+        link: 'https://twitter.com/ItzSyNi',
+      },
+      {
+        icon: 'discord',
+        link: 'https://discord.gg/gz34uBgQMN',
+      },
+      {
+        icon: 'web',
+        link: 'https://www.twitch.tv/syndicateinitiative',
+      },
+    ],
+    badges: [{ badgeType: 'recent' }],
+    filter: {
+      type: 'issuer',
+      value: ['7Rinf5mQGHccRnxE6J2p2xNFjpNCh4sgVdpsiyQ9NRHc'],
+    },
+    rentalCard: {
+      invalidators: ['rate', 'duration'],
+      invalidationOptions: {
+        visibilities: ['public'],
+        durationOptions: ['minutes', 'hours', 'days', 'weeks'],
+        invalidationTypes: ['reissue'],
+        paymentMints: ['So11111111111111111111111111111111111111112'],
         showClaimRentalReceipt: false,
         setClaimRentalReceipt: false,
         maxDurationAllowed: {

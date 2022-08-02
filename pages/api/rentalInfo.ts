@@ -5,9 +5,9 @@ import { TokenManagerState } from '@cardinal/token-manager/dist/cjs/programs/tok
 import { getTokenManager } from '@cardinal/token-manager/dist/cjs/programs/tokenManager/accounts'
 import { findTokenManagerAddress } from '@cardinal/token-manager/dist/cjs/programs/tokenManager/pda'
 import { Connection } from '@solana/web3.js'
-import { accountDataById } from 'api/api'
 import type { NextApiHandler } from 'next'
 import { ENVIRONMENTS } from 'providers/EnvironmentProvider'
+import { fetchAccountDataById } from 'providers/SolanaAccountsProvider'
 
 interface GetResponse {
   mintId?: string
@@ -52,7 +52,7 @@ const get: NextApiHandler<GetResponse> = async (req, res) => {
 
   let timeInvalidatorData: AccountData<TimeInvalidatorData> | undefined
   for (const invalidtor of tokenManagerData.parsed.invalidators) {
-    const data = await accountDataById(connection, [invalidtor])
+    const data = await fetchAccountDataById(connection, [invalidtor])
     if (data[invalidtor.toString()]!.type === 'timeInvalidator') {
       console.log('Found rental')
       timeInvalidatorData = data[

@@ -1,15 +1,41 @@
+@import url('https://fonts.cdnfonts.com/css/euclid-circular-a');
+
+::-webkit-scrollbar {
+  width: 0px;
+  background: transparent; /* make scrollbar transparent */
+}
+
 body {
   margin: 0;
-  background-color: rgb(26, 27, 32) !important;
-  font-family: 'SFHello', sans-serif;
 }
 
 .ant-tag {
   margin: 0px;
 }
 
+.ant-picker {
+  padding: 7px 11px;
+}
+
+.ant-picker-cell-in-view.ant-picker-cell-today .ant-picker-cell-inner::before {
+  border-color: #907EFF;
+}
+
+.ant-picker:hover {
+  border-color: #907EFF;
+}
+
+.ant-picker-focused {
+  border-color: #907EFF;
+}
+
 .ant-picker-ranges .ant-picker-ok button {
-  color: black;
+  color: white;
+  border-color: #907EFF;
+}
+
+.ant-picker-cell-in-view.ant-picker-cell-selected .ant-picker-cell-inner, .ant-picker-cell-in-view.ant-picker-cell-range-start .ant-picker-cell-inner, .ant-picker-cell-in-view.ant-picker-cell-range-end .ant-picker-cell-inner {
+  background: #907EFF;
 }
 
 .ant-picker-ranges .ant-picker-ok button:hover {

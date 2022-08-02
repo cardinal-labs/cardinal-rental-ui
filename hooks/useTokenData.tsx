@@ -1,8 +1,15 @@
+import type { AccountData } from '@cardinal/common'
+import type * as spl from '@solana/spl-token'
 import type { PublicKey } from '@solana/web3.js'
-import type { TokenData } from 'api/api'
-import { getTokenData } from 'api/api'
+import type { TokenData } from 'apis/api'
+import { getTokenData } from 'apis/api'
 import { useEnvironmentCtx } from 'providers/EnvironmentProvider'
 import { useQuery } from 'react-query'
+
+export type SingleTokenData = Omit<TokenData, 'recipientTokenAccount'> & {
+  recipientTokenAccount?: AccountData<spl.AccountInfo>
+  metadata?: AccountData<any>
+}
 
 export const useTokenData = (
   tokenManagerId?: PublicKey,
@@ -10,7 +17,7 @@ export const useTokenData = (
 ) => {
   const { connection, environment } = useEnvironmentCtx()
 
-  return useQuery<TokenData | undefined>(
+  return useQuery<SingleTokenData | undefined>(
     ['useTokenData', tokenManagerId?.toString(), environment],
     async () => {
       if (!tokenManagerId) return

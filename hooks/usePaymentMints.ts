@@ -5,16 +5,26 @@ import { useQuery } from 'react-query'
 
 export const PAYMENT_MINTS = [
   {
+    mint: 'So11111111111111111111111111111111111111112',
+    symbol: 'SOL',
+  },
+  {
     mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
     symbol: 'USDC',
+    image:
+      'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png',
   },
   {
     mint: 'MLKmUCaj1dpBY881aFsrBwR9RUMoKic8SWT3u1q5Nkj',
     symbol: 'MILK',
+    image:
+      'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/MLKmUCaj1dpBY881aFsrBwR9RUMoKic8SWT3u1q5Nkj/logo.png',
   },
   {
-    mint: 'So11111111111111111111111111111111111111112',
-    symbol: 'SOL',
+    mint: 'FdviznPoMEakdJ37fikNxhoscyruUHSHNkKyvntSqbuo',
+    symbol: 'CATNIP',
+    image:
+      'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/FdviznPoMEakdJ37fikNxhoscyruUHSHNkKyvntSqbuo/logo.png',
   },
 ]
 
@@ -43,6 +53,9 @@ export const usePaymentMints = () => {
         }
       }
       return paymentMintInfoMap
+    },
+    {
+      refetchOnMount: false,
     }
   )
 }

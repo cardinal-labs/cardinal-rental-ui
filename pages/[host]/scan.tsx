@@ -1,14 +1,14 @@
 import styled from '@emotion/styled'
 import type { PublicKey } from '@solana/web3.js'
 import { sendAndConfirmRawTransaction, Transaction } from '@solana/web3.js'
-import { Header } from 'common/Header'
+import { HeaderSlim } from 'common/HeaderSlim'
 import { LoadingPulseWrapped } from 'common/LoadingPulse'
 import { StyledBackground } from 'common/StyledBackground'
 import { firstParam, pubKeyUrl } from 'common/utils'
 import { useRouter } from 'next/router'
 import { useEnvironmentCtx } from 'providers/EnvironmentProvider'
 import { useProjectConfig } from 'providers/ProjectConfigProvider'
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { FaCheckCircle, FaQuestionCircle } from 'react-icons/fa'
 
 type Hideable = {
@@ -54,7 +54,7 @@ const VerificationStep = styled.div<Verifiable>`
     }
   }};
 `
-function Scan() {
+export default function Scan() {
   const router = useRouter()
   const ctx = useEnvironmentCtx()
   const { tx } = router.query
@@ -100,7 +100,7 @@ function Scan() {
 
   return (
     <>
-      <Header />
+      <HeaderSlim />
       <div
         style={{
           paddingTop: 'calc(50vh - 425px)',
@@ -170,5 +170,3 @@ function Scan() {
     </>
   )
 }
-
-export default Scan

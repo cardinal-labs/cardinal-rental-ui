@@ -19,8 +19,8 @@ import type { ProjectConfig } from 'config/config'
 import { useUserTokenData } from 'hooks/useUserTokenData'
 import { useEnvironmentCtx } from 'providers/EnvironmentProvider'
 import { useProjectConfig } from 'providers/ProjectConfigProvider'
-import { AsyncButton } from 'rental-components/common/Button'
 
+import { ButtonSmall } from './ButtonSmall'
 import { executeTransaction } from './Transactions'
 
 export type AirdropMetadata = { name: string; symbol: string; uri: string }
@@ -140,11 +140,9 @@ export const Airdrop = () => {
   const { config } = useProjectConfig()
 
   return (
-    <AsyncButton
-      bgColor={config.colors.secondary}
-      variant="primary"
+    <ButtonSmall
       disabled={!wallet.connected}
-      handleClick={async () => {
+      onClick={async () => {
         if (!wallet.connected) return
         try {
           await airdropNFT(connection, asWallet(wallet), config)
@@ -155,7 +153,7 @@ export const Airdrop = () => {
       }}
     >
       Airdrop
-    </AsyncButton>
+    </ButtonSmall>
   )
 }
 
@@ -166,14 +164,12 @@ export const AirdropSol = () => {
   const { config } = useProjectConfig()
 
   return (
-    <AsyncButton
-      bgColor={config.colors.secondary}
-      variant="primary"
+    <ButtonSmall
       disabled={!wallet.connected}
-      handleClick={async () => {
-        if (!wallet.connected) return
+      onClick={async () => {
+        if (!wallet.publicKey) return
         try {
-          await connection.requestAirdrop(wallet.publicKey!, LAMPORTS_PER_SOL)
+          await connection.requestAirdrop(wallet.publicKey, LAMPORTS_PER_SOL)
           notify({ message: 'Airdropped 1 sol successfully' })
           await userTokenData.refetch()
         } catch (e) {
@@ -182,6 +178,6 @@ export const AirdropSol = () => {
       }}
     >
       Faucet
-    </AsyncButton>
+    </ButtonSmall>
   )
 }

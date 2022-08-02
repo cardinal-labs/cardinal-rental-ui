@@ -1,18 +1,9 @@
-import {
-  getNameEntryData,
-  tryGetProfile,
-} from '@cardinal/namespaces-components'
-import type { PublicKey } from '@solana/web3.js'
-import { Connection } from '@solana/web3.js'
-import type { TokenData } from 'api/api'
-import { tryPublicKey } from 'api/utils'
+import type { TokenData } from 'apis/api'
 import type { ProjectConfig } from 'config/config'
 import { projectConfigs } from 'config/config'
 import type { NextPageContext } from 'next'
 import type { ReactChild } from 'react'
 import React, { useContext, useState } from 'react'
-
-import { ENVIRONMENTS } from './EnvironmentProvider'
 
 export const getInitialProps = async ({
   ctx,
@@ -27,110 +18,70 @@ export const getInitialProps = async ({
       ?.split('.')[0]
       ?.replace('dev-', '')
 
-  const cluster = (ctx.query.cluster || ctx.req?.headers.host)?.includes('dev')
-    ? 'devnet'
-    : ctx.query.cluster || process.env.BASE_CLUSTER
-  const foundEnvironment = ENVIRONMENTS.find((e) => e.label === cluster)!
-
-  const namespaceName = 'twitter'
-  let publicKey
-  let nameEntryData
-  if (project) {
-    const profile = await tryGetProfile(project)
-    try {
-      publicKey = tryPublicKey(project)
-      if (!publicKey) {
-        nameEntryData = await getNameEntryData(
-          foundEnvironment.secondary
-            ? new Connection(foundEnvironment.secondary)
-            : new Connection(foundEnvironment.primary, {
-                commitment: 'recent',
-              }),
-          namespaceName,
-          profile?.username || project
-        )
-        publicKey = tryPublicKey(project) || nameEntryData?.owner
-      }
-    } catch (e) {
-      console.log('Failed to get name entry: ', e)
-    }
-  }
-  const config = project
-    ? projectConfigs[project] || projectConfigs['default']!
-    : projectConfigs['default']!
-
   return {
-    config: publicKey
-      ? {
-          ...projectConfigs['vault']!,
-          issuer: { publicKeyString: publicKey.toString() },
-        }
-      : config,
+    config: project
+      ? projectConfigs[project] || projectConfigs['default']!
+      : projectConfigs['default']!,
   }
 }
 
 export const filterTokens = (
-  cluster: string,
   tokens: TokenData[],
   filter?: {
     type: 'creators' | 'symbol' | 'issuer' | 'state' | 'claimer' | 'owner'
     value: string[]
   },
-  issuer?: PublicKey | null
+  cluster?: string | undefined
 ): TokenData[] => {
   return tokens.filter((token) => {
-    let filtered = false
-    if (filter) {
-      if (
-        filter.type === 'creators' &&
-        !token.metaplexData?.data?.data?.creators?.some(
+    if (
+      !token.metaplexData?.parsed.data.uri ||
+      token.metaplexData?.parsed.data.uri.length <= 0
+    ) {
+      return false
+    }
+    if (
+      token.indexedData?.mint_address_nfts &&
+      (token.indexedData.mint_address_nfts.metadatas_attributes?.length ?? 0) <=
+        0
+    ) {
+      return false
+    }
+    if (!filter) return true
+    switch (filter.type) {
+      case 'creators':
+        return token.metaplexData?.parsed?.data?.creators?.some(
           (creator) =>
             filter.value.includes(creator.address.toString()) &&
-            (cluster === 'devnet' || creator.verified)
+            ((cluster && cluster === 'devnet') || creator.verified)
         )
-      ) {
-        filtered = true
-      } else if (
-        filter.type === 'symbol' &&
-        token.metadata?.data?.symbol !== filter.value
-      ) {
-        filtered = true
-      } else if (
-        filter.type === 'issuer' &&
-        token.tokenManager?.parsed.issuer
-      ) {
-        filtered = true
-      } else if (
-        filter.type === 'state' &&
-        token.tokenManager?.parsed &&
-        filter.value.includes(token.tokenManager?.parsed.state.toString())
-      ) {
-        filtered = true
-      } else if (
-        filter.type === 'claimer' &&
-        token.recipientTokenAccount &&
-        filter.value.includes(token.recipientTokenAccount.owner.toString())
-      ) {
-        filtered = true
-      } else if (
-        filter.type === 'owner' &&
-        token.tokenAccount &&
-        filter.value.includes(
-          token.tokenAccount?.account.data.parsed.info.owner.toString()
-        ) &&
-        !token.tokenManager
-      ) {
-        filtered = true
-      }
-      if (issuer && !token.tokenManager?.parsed.issuer.equals(issuer)) {
-        filtered = true
-      }
+      case 'symbol':
+        return filter.value.includes(token.metaplexData?.parsed.data.symbol)
+      case 'issuer':
+        return filter.value.includes(
+          token.tokenManager?.parsed.issuer.toString() ?? ''
+        )
+      case 'state':
+        return (
+          token.tokenManager?.parsed &&
+          filter.value.includes(token.tokenManager?.parsed.state.toString())
+        )
+      case 'claimer':
+        return (
+          token.recipientTokenAccount &&
+          filter.value.includes(
+            token.recipientTokenAccount.parsed.owner.toString()
+          )
+        )
+      case 'owner':
+        return (
+          token.tokenAccount &&
+          !token.tokenManager &&
+          filter.value.includes(token.tokenAccount?.parsed.owner.toString())
+        )
+      default:
+        return false
     }
-    return (
-      token?.metadata?.data &&
-      Object.keys(token.metadata.data).length > 0 &&
-      !filtered
-    )
   })
 }
 
@@ -147,12 +98,14 @@ export function getLink(path: string, withParams = true) {
 export interface ProjectConfigValues {
   config: ProjectConfig
   setProjectConfig: (s: string) => void
+  configFromToken: (tokenData?: TokenData) => ProjectConfig
 }
 
 const ProjectConfigValues: React.Context<ProjectConfigValues> =
   React.createContext<ProjectConfigValues>({
-    config: projectConfigs['portals']!,
+    config: projectConfigs['default']!,
     setProjectConfig: () => {},
+    configFromToken: () => projectConfigs['default']!,
   })
 
 export function ProjectConfigProvider({
@@ -172,6 +125,12 @@ export function ProjectConfigProvider({
             setConfig(projectConfigs[project]!)
           }
         },
+        configFromToken: (tokenData?: TokenData) =>
+          (tokenData &&
+            Object.values(projectConfigs).find(
+              (c) => filterTokens([tokenData], c.filter).length > 0
+            )) ??
+          config,
       }}
     >
       {children}

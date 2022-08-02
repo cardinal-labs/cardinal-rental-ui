@@ -32,7 +32,7 @@ export const useProjectStats = () => {
   const { environment } = useEnvironmentCtx()
 
   return useQuery<ProjectStats | undefined>(
-    ['useProjectStats', environment.index],
+    ['useProjectStats', environment.index, config.name],
     async () => {
       const index = new ApolloClient({
         uri: 'https://prod-holaplex.hasura.app/v1/graphql',
@@ -176,7 +176,7 @@ export const useProjectStats = () => {
       }
     },
     {
-      refetchInterval: 60000,
+      refetchOnMount: false,
     }
   )
 }

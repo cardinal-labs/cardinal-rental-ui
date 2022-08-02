@@ -2,27 +2,26 @@ import { withFindOrInitAssociatedTokenAccount } from '@cardinal/token-manager'
 import { Token, TOKEN_PROGRAM_ID } from '@solana/spl-token'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { PublicKey, Transaction } from '@solana/web3.js'
-import type { TokenData } from 'api/api'
+import type { TokenData } from 'apis/api'
 import { Airdrop } from 'common/Airdrop'
-import { Header } from 'common/Header'
-import { NFT, NFTPlaceholder, TokensOuter } from 'common/NFT'
+import { ButtonSmall } from 'common/ButtonSmall'
+import { Card } from 'common/Card'
+import { HeaderSlim } from 'common/HeaderSlim'
+import { NFT } from 'common/NFT'
 import { notify } from 'common/Notification'
 import { executeTransaction } from 'common/Transactions'
 import { asWallet } from 'common/Wallets'
 import { useUserTokenData } from 'hooks/useUserTokenData'
 import { useEnvironmentCtx } from 'providers/EnvironmentProvider'
-import { AsyncButton, Button } from 'rental-components/common/Button'
-import { useRentalExtensionModal } from 'rental-components/RentalExtensionModalProvider'
 
 function Burn() {
   const ctx = useEnvironmentCtx()
   const wallet = useWallet()
   const userTokenData = useUserTokenData()
-  const rentalExtensionModal = useRentalExtensionModal()
 
   const revokeRental = async (tokenData: TokenData) => {
     const transaction = new Transaction()
-    const mintId = tokenData.metaplexData?.data.mint
+    const mintId = tokenData.metaplexData?.parsed.mint
     if (!mintId || !wallet.publicKey) return
     const walletAta = await withFindOrInitAssociatedTokenAccount(
       transaction,
@@ -70,10 +69,10 @@ function Burn() {
   const getExpiredTokens = (tokenData: TokenData[]) => {
     const datas = tokenData.filter(
       (token) =>
-        token?.metaplexData?.data?.data?.uri.includes('api.cardinal.so') &&
+        token?.metaplexData?.parsed?.data?.uri.includes('api.cardinal.so') &&
         !token.tokenManager &&
-        token.tokenAccount?.account.data.parsed.info.state !== 'frozen' &&
-        token?.metadata?.data?.name === 'EXPIRED'
+        token.tokenAccount?.parsed.state !== 'frozen' &&
+        token?.metaplexData?.parsed?.data.name === 'EXPIRED'
     )
     // console.log(datas[0])
     // console.log(datas[1])
@@ -84,17 +83,19 @@ function Burn() {
 
   return (
     <>
-      <Header />
-      <TokensOuter style={{ marginTop: '20px' }}>
+      <HeaderSlim />
+      <div className="mx-auto mt-12 max-w-[1634px]">
         {!userTokenData.isFetched ? (
-          <>
-            <NFTPlaceholder />
-            <NFTPlaceholder />
-            <NFTPlaceholder />
-            <NFTPlaceholder />
-            <NFTPlaceholder />
-            <NFTPlaceholder />
-          </>
+          <div className="flex flex-wrap justify-center gap-4 md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+            <Card skeleton header={<></>} subHeader={<></>} />
+            <Card skeleton header={<></>} subHeader={<></>} />
+            <Card skeleton header={<></>} subHeader={<></>} />
+            <Card skeleton header={<></>} subHeader={<></>} />
+            <Card skeleton header={<></>} subHeader={<></>} />
+            <Card skeleton header={<></>} subHeader={<></>} />
+            <Card skeleton header={<></>} subHeader={<></>} />
+            <Card skeleton header={<></>} subHeader={<></>} />
+          </div>
         ) : expiredTokens && expiredTokens.length > 0 ? (
           expiredTokens.map((tokenData) => (
             <div key={tokenData.tokenAccount?.pubkey.toString()}>
@@ -102,27 +103,9 @@ function Burn() {
                 key={tokenData?.tokenAccount?.pubkey.toBase58()}
                 tokenData={tokenData}
               ></NFT>
-              {tokenData.timeInvalidator?.parsed?.extensionDurationSeconds ? (
-                <Button
-                  variant="primary"
-                  className="mx-auto mt-4"
-                  onClick={() =>
-                    rentalExtensionModal.show(
-                      asWallet(wallet),
-                      ctx.connection,
-                      ctx.environment.label,
-                      tokenData
-                    )
-                  }
-                >
-                  Increase Duration
-                </Button>
-              ) : null}
-
-              <AsyncButton
-                variant="primary"
+              <ButtonSmall
                 className="mx-auto mt-3"
-                handleClick={async () => {
+                onClick={async () => {
                   try {
                     await revokeRental(tokenData)
                   } catch (e) {
@@ -134,7 +117,7 @@ function Burn() {
                 }}
               >
                 Burn
-              </AsyncButton>
+              </ButtonSmall>
             </div>
           ))
         ) : (
@@ -143,7 +126,7 @@ function Burn() {
             {ctx.environment.label === 'devnet' && <Airdrop />}
           </div>
         )}
-      </TokensOuter>
+      </div>
     </>
   )
 }

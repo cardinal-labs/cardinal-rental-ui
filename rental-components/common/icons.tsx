@@ -44,9 +44,7 @@ export const CloseIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
 
 export const SolanaLogo: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   <svg
-    width="94"
-    height="12"
-    viewBox="0 0 94 12"
+    viewBox="0 -0.5 13 12.5"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
     {...props}

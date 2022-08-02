@@ -11,24 +11,19 @@ import * as metaplex from '@metaplex-foundation/mpl-token-metadata'
 import { Edition } from '@metaplex-foundation/mpl-token-metadata'
 import { utils } from '@project-serum/anchor'
 import * as spl from '@solana/spl-token'
-import type { AccountInfo, ParsedAccountData } from '@solana/web3.js'
 import { Connection, Keypair, PublicKey, Transaction } from '@solana/web3.js'
-import type { TokenData } from 'api/api'
-import { accountDataById } from 'api/api'
-import { tryPublicKey } from 'api/utils'
+import { tryPublicKey } from 'apis/utils'
 import { firstParam } from 'common/utils'
 import type { TokenFilter } from 'config/config'
 import { projectConfigs } from 'config/config'
 import type { NextApiHandler } from 'next'
 import { ENVIRONMENTS } from 'providers/EnvironmentProvider'
+import { fetchAccountDataById } from 'providers/SolanaAccountsProvider'
 
 export type ScanTokenData = {
-  tokenAccount?: {
-    pubkey: PublicKey
-    account: AccountInfo<ParsedAccountData>
-  }
+  tokenAccount?: AccountData<spl.AccountInfo>
   tokenManager?: AccountData<TokenManagerData>
-  metaplexData?: { pubkey: PublicKey; data: metaplex.MetadataData } | null
+  metaplexData?: AccountData<metaplex.MetadataData>
   claimApprover?: AccountData<PaidClaimApproverData> | null
   useInvalidator?: AccountData<UseInvalidatorData> | null
   timeInvalidator?: AccountData<TimeInvalidatorData> | null
@@ -56,7 +51,7 @@ export async function getScanTokenAccounts(
     tokenAccounts.map(
       async (tokenAccount) =>
         (
-          await metaplex.MetadataProgram.find_metadata_account(
+          await metaplex.MetadataProgram.findMetadataAccount(
             new PublicKey(tokenAccount.account.data.parsed.info.mint)
           )
         )[0]
@@ -73,18 +68,20 @@ export async function getScanTokenAccounts(
       acc[tokenAccounts[i]!.pubkey.toString()] = {
         pubkey: metaplexIds[i]!,
         ...accountInfo,
-        data: metaplex.MetadataData.deserialize(
+        parsed: metaplex.MetadataData.deserialize(
           accountInfo?.data as Buffer
         ) as metaplex.MetadataData,
       }
     } catch (e) {}
     return acc
-  }, {} as { [tokenAccountId: string]: { pubkey: PublicKey; data: metaplex.MetadataData } })
+  }, {} as { [tokenAccountId: string]: { pubkey: PublicKey; parsed: metaplex.MetadataData } })
 
   // filter by creators
   if (filter?.type === 'creators') {
     tokenAccounts = tokenAccounts.filter((tokenAccount) =>
-      metaplexData[tokenAccount.pubkey.toString()]?.data?.data?.creators?.some(
+      metaplexData[
+        tokenAccount.pubkey.toString()
+      ]?.parsed?.data?.creators?.some(
         (creator) =>
           filter.value.includes(creator.address.toString()) &&
           (cluster === 'devnet' || creator.verified)
@@ -96,7 +93,7 @@ export async function getScanTokenAccounts(
   const delegateIds = tokenAccounts.map((tokenAccount) =>
     tryPublicKey(tokenAccount.account.data.parsed.info.delegate)
   )
-  const tokenAccountDelegateData = await accountDataById(
+  const tokenAccountDelegateData = await fetchAccountDataById(
     connection,
     delegateIds
   )
@@ -123,7 +120,7 @@ export async function getScanTokenAccounts(
 
   const accountsById = {
     ...tokenAccountDelegateData,
-    ...(await accountDataById(connection, idsToFetch)),
+    ...(await fetchAccountDataById(connection, idsToFetch)),
   }
 
   return tokenAccounts.reduce((acc, tokenAccount, i) => {
@@ -155,7 +152,10 @@ export async function getScanTokenAccounts(
     return [
       ...acc,
       {
-        tokenAccount,
+        tokenAccount: {
+          pubkey: tokenAccount.pubkey,
+          parsed: tokenAccount.account.data.parsed,
+        },
         metaplexData: metaplexData[tokenAccount.pubkey.toString()],
         tokenManager: tokenManagerData,
         claimApprover: claimApproverId
@@ -225,7 +225,7 @@ const post: NextApiHandler<PostResponse> = async (req, res) => {
   const config =
     projectConfigs[firstParam(collectionParam)] || projectConfigs['default']!
 
-  let tokenDatas: TokenData[] = []
+  let tokenDatas: ScanTokenData[] = []
   try {
     tokenDatas = await getScanTokenAccounts(
       connection,

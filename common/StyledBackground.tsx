@@ -1,9 +1,9 @@
 import styled from '@emotion/styled'
-import { darken } from 'polished'
+import { transparentize } from 'polished'
 
 type BkgProps = {
   dark?: boolean
-  colors?: { main: string; secondary: string }
+  colors?: { glow: string }
 }
 
 export const StyledBackground = styled.div<BkgProps>`
@@ -14,9 +14,10 @@ export const StyledBackground = styled.div<BkgProps>`
   position: fixed;
   background: ${(props) =>
     props.colors
-      ? `linear-gradient(-45deg, ${darken(0.5, props.colors.secondary)}, ${
-          props.colors.main
-        }, ${darken(0.5, props.colors.secondary)})`
+      ? `linear-gradient(-45deg, ${transparentize(
+          0.8,
+          props.colors.glow
+        )}, #0B0B0B, ${transparentize(0.8, props.colors.glow)})`
       : props.dark
       ? 'linear-gradient(-45deg, #200028, #000000, #002e38)'
       : 'linear-gradient(-45deg, #ee7752, #e7cae4, #23a6d5, #23d5ab)'};
